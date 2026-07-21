@@ -107,15 +107,14 @@ class _RecordingPlayerScreenState extends State<RecordingPlayerScreen> {
     _controller = YoutubePlayerController.fromVideoId(
       videoId: _videoId!,
       autoPlay: true,
-      params: const YoutubePlayerParams(
+      params: YoutubePlayerParams(
         showControls: true,
         showFullscreenButton: false, // We will use our custom fullscreen
         mute: false,
         loop: false,
         enableJavaScript: true,
         strictRelatedVideos: true, // rel=0
-        origin: 'https://www.youtube.com',
-        userAgent: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36',
+        origin: ApiConfig.frontendUrl,
       ),
     );
     
