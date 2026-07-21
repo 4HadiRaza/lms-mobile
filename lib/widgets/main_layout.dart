@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
+import 'package:premier_lms/providers/classes_provider.dart';
+import 'package:premier_lms/providers/recordings_provider.dart';
 import 'package:premier_lms/screens/home/home_screen.dart';
 import 'package:premier_lms/screens/courses/courses_screen.dart';
 import 'package:premier_lms/screens/live/live_classes_screen.dart';
@@ -25,6 +28,15 @@ class _MainLayoutState extends State<MainLayout> {
     ProfileScreen(),
   ];
 
+  void _onTabChanged(int index) {
+    if (!mounted) return;
+    if (index == 2) {
+      context.read<ClassesProvider>().loadStudentClasses();
+    } else if (index == 3) {
+      context.read<RecordingsProvider>().loadRecordings();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -42,8 +54,10 @@ class _MainLayoutState extends State<MainLayout> {
               children: [
                 NavigationRail(
                   selectedIndex: _currentIndex,
-                  onDestinationSelected: (index) =>
-                      setState(() => _currentIndex = index),
+                  onDestinationSelected: (index) {
+                    setState(() => _currentIndex = index);
+                    _onTabChanged(index);
+                  },
                   labelType: NavigationRailLabelType.all,
                   selectedIconTheme: const IconThemeData(color: AppColors.primaryGreen),
                   selectedLabelTextStyle: const TextStyle(
@@ -125,8 +139,10 @@ class _MainLayoutState extends State<MainLayout> {
               ),
               child: NavigationBar(
                 selectedIndex: _currentIndex,
-                onDestinationSelected: (index) =>
-                    setState(() => _currentIndex = index),
+                onDestinationSelected: (index) {
+                  setState(() => _currentIndex = index);
+                  _onTabChanged(index);
+                },
                 backgroundColor: Colors.white,
                 indicatorColor: AppColors.primaryGreen.withValues(alpha: 0.15),
                 destinations: const [

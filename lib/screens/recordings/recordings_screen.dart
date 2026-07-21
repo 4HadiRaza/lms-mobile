@@ -62,6 +62,8 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
               title: 'No recordings available',
               subtitle:
                   'Recorded lectures will appear here after your classes are held.',
+              actionText: 'Refresh',
+              onAction: provider.loadRecordings,
             );
           }
 

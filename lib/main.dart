@@ -44,24 +44,7 @@ class PremierLMSApp extends StatelessWidget {
         builder: (context, child) {
           return SecurityWrapper(child: child!);
         },
-        home: Consumer<AuthProvider>(
-          builder: (context, auth, _) {
-            if (auth.isLoading) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(color: AppColors.primaryGreen),
-                ),
-              );
-            }
-            if (auth.isLoggedIn) {
-              if (auth.user != null && !auth.user!.isActive) {
-                return const UnderReviewScreen();
-              }
-              return const MainLayout();
-            }
-            return const LoginScreen();
-          },
-        ),
+        home: _buildHomeRoute(),
         onGenerateRoute: (settings) {
           // Handle dynamic routes like /course/:slug
           if (settings.name != null &&
@@ -78,6 +61,8 @@ class PremierLMSApp extends StatelessWidget {
 
           // Static routes
           switch (settings.name) {
+            case '/':
+              return MaterialPageRoute(builder: (_) => _buildHomeRoute());
             case '/login':
               return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/signup':
@@ -94,6 +79,28 @@ class PremierLMSApp extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+
+  Widget _buildHomeRoute() {
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        debugPrint('_buildHomeRoute: isLoading = ${auth.isLoading}, isLoggedIn = ${auth.isLoggedIn}, user = ${auth.user?.email}, isActive = ${auth.user?.isActive}');
+        if (auth.isLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+            ),
+          );
+        }
+        if (auth.isLoggedIn) {
+          if (auth.user != null && !auth.user!.isActive) {
+            return const UnderReviewScreen();
+          }
+          return const MainLayout();
+        }
+        return const LoginScreen();
+      },
     );
   }
 }

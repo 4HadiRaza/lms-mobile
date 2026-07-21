@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:premier_lms/config/theme.dart';
 import 'package:premier_lms/providers/auth_provider.dart';
 import 'package:premier_lms/providers/classes_provider.dart';
 import 'package:premier_lms/models/live_class.dart';
 import 'package:premier_lms/widgets/empty_state.dart';
+import 'package:premier_lms/screens/live/embedded_zoom_screen.dart';
+import 'package:premier_lms/services/api_service.dart';
 
 /// Live classes screen with upcoming and past sections.
 class LiveClassesScreen extends StatefulWidget {
@@ -61,6 +62,8 @@ class _LiveClassesScreenState extends State<LiveClassesScreen> {
               title: 'No classes scheduled',
               subtitle:
                   'Your upcoming and past classes will appear here once your enrollment is active.',
+              actionText: 'Refresh',
+              onAction: provider.loadStudentClasses,
             );
           }
 
@@ -175,22 +178,26 @@ class _LiveClassesScreenState extends State<LiveClassesScreen> {
           if (isUpcoming)
             TextButton(
               onPressed: () async {
-                final provider = context.read<ClassesProvider>();
-                final joinUrl = await provider.getJoinUrl(liveClass.id);
-                if (joinUrl != null && context.mounted) {
-                  final uri = Uri.parse(joinUrl);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not open Zoom link.')),
-                      );
-                    }
+                final token = await ApiService().getToken();
+                if (token == null) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Not authenticated.')),
+                    );
                   }
-                } else if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to get join link.')),
+                  return;
+                }
+                
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EmbeddedZoomScreen(
+                        classId: liveClass.id,
+                        token: token,
+                        title: liveClass.courseName ?? 'Virtual Classroom',
+                      ),
+                    ),
                   );
                 }
               },

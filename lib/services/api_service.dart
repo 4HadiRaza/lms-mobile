@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:premier_lms/config/api_config.dart';
 
+import 'package:flutter/foundation.dart';
+
 /// Dio-based HTTP client mirroring the Axios setup in api.ts.
 /// Handles JWT attachment and 401 auto-logout.
 class ApiService {
@@ -32,11 +34,14 @@ class ApiService {
         handler.next(options);
       },
       onError: (error, handler) async {
+        debugPrint('ApiService.onError: statusCode = ${error.response?.statusCode}, path = ${error.requestOptions.path}');
         if (error.response?.statusCode == 401) {
           final message =
               error.response?.data?['message']?.toString() ?? '';
+          debugPrint('ApiService.onError: 401 message = "$message"');
           if (message.contains('Session expired') ||
               message.contains('logged in from another device')) {
+            debugPrint('ApiService.onError: Session expired matched. Invalidating session...');
             await clearAuth();
             onSessionExpired?.call();
           }

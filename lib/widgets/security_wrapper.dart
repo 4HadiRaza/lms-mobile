@@ -22,38 +22,7 @@ class _SecurityWrapperState extends State<SecurityWrapper> {
   }
 
   Future<void> _initScreenProtection() async {
-    // Screen protection is not supported on Web.
-    if (kIsWeb) return;
-
-    try {
-      // 1. Prevent screenshots natively (Android & iOS)
-      await ScreenProtector.preventScreenshotOn();
-
-      // 2. Hide app preview in the recent apps switcher
-      if (Platform.isAndroid) {
-        await ScreenProtector.protectDataLeakageOn();
-      } else if (Platform.isIOS) {
-        await ScreenProtector.protectDataLeakageWithBlur();
-      }
-
-      // 3. Add listeners for iOS recording and screenshots
-      if (Platform.isIOS) {
-        ScreenProtector.addListener(
-          _onScreenshot,
-          _onScreenRecord,
-        );
-
-        // Check if currently recording on startup
-        final isRecording = await ScreenProtector.isRecording();
-        if (isRecording) {
-          setState(() {
-            _isRecording = true;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Screen protector initialization failed: $e');
-    }
+    // Temporarily disabled for error reporting and screenshot capture
   }
 
   void _onScreenshot() {

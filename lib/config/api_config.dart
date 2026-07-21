@@ -1,8 +1,51 @@
+import 'package:flutter/foundation.dart';
+
 /// Central API configuration matching the backend endpoints
 /// used by the Next.js frontend.
 class ApiConfig {
-  // Change this to your backend URL
-  static const String baseUrl = 'https://premier-lms.vercel.app/api';
+  // Production URL
+  static const String _prodUrl = 'https://premier-l-ms-backend-lhy5.vercel.app/api';
+
+  // Local Development URLs
+  // For Flutter Web and iOS Simulator: http://localhost:3001/api
+  // For Android Emulator: http://10.0.2.2:3001/api
+  static const String _localUrlWebAndIos = 'http://localhost:3001/api';
+  static const String _localUrlAndroid = 'http://10.0.2.2:3001/api';
+
+  // Set this to true to force production URL even in debug mode, or false to use local backend.
+  static const bool useProdInDebug = true;
+
+  static String get baseUrl {
+    if (!kDebugMode || useProdInDebug) {
+      return _prodUrl;
+    }
+    
+    if (kIsWeb) {
+      return _localUrlWebAndIos;
+    }
+    
+    // In debug mode, automatically detect platform for local testing
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return _localUrlAndroid;
+    }
+    return _localUrlWebAndIos;
+  }
+
+  static String get frontendUrl {
+    if (!kDebugMode || useProdInDebug) {
+      return 'https://premier-lms-frontend.vercel.app';
+    }
+    
+    if (kIsWeb) {
+      return 'http://localhost:3000';
+    }
+    
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:3000';
+    }
+    return 'http://localhost:3000';
+  }
+
 
   // Auth
   static const String login = '/auth/login';
