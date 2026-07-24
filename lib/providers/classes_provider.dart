@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:premier_lms/config/api_config.dart';
 import 'package:premier_lms/models/live_class.dart';
 import 'package:premier_lms/services/api_service.dart';

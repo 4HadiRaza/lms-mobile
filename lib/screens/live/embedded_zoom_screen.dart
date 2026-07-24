@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:premier_lms/config/theme.dart';
 import 'package:premier_lms/config/api_config.dart';
 import 'package:flutter/services.dart';
-import 'package:screen_protector/screen_protector.dart';
 
 class EmbeddedZoomScreen extends StatefulWidget {
   final String classId;
@@ -37,39 +38,90 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
+      _requestPermissionsAndInitWebView();
+    } else {
+      _isLoading = false;
+      final classroomUrl = '${ApiConfig.frontendUrl}/dashboard/classes/${widget.classId}?token=${widget.token}&fromApp=true';
+      _launchClassroomUrl(classroomUrl);
     }
+  }
 
-    // Construct url with auth token query param
-    final classroomUrl = '${ApiConfig.frontendUrl}/dashboard/classes/${widget.classId}?token=${widget.token}&fromApp=true';
-    if (!kIsWeb) {
-      // Initialize standard WebViewController
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(Colors.black)
-        ..setUserAgent("PremierLMSMobileWebView")
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onPageStarted: (String url) {
+  Future<void> _requestPermissionsAndInitWebView() async {
+    // 1. Trigger OS Native Permission Prompt for Camera & Mic
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.microphone,
+    ].request();
+
+    if (statuses[Permission.camera]!.isGranted &&
+        statuses[Permission.microphone]!.isGranted) {
+      _initWebView();
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Camera and Microphone permissions are required for live classes.'),
+          ),
+        );
+      }
+      _initWebView();
+    }
+  }
+
+  void _initWebView() {
+    final String mobileChromeUserAgent =
+        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 PremierLMSMobileWebView";
+
+    final classroomUrl =
+        '${ApiConfig.frontendUrl}/dashboard/classes/${widget.classId}?token=${widget.token}&fromApp=true';
+
+    // Initialize standard WebViewController with hardware permission handlers
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..setUserAgent(mobileChromeUserAgent)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            if (mounted) {
               setState(() {
                 _isLoading = true;
               });
-            },
-            onPageFinished: (String url) {
+            }
+          },
+          onPageFinished: (String url) {
+            if (mounted) {
               setState(() {
                 _isLoading = false;
               });
-            },
-            onWebResourceError: (WebResourceError error) {
-              debugPrint("WebView error: ${error.description}");
-            },
-          ),
-        );
+            }
+            _injectZoomOverlayFix();
+          },
+          onWebResourceError: (WebResourceError error) {
+            debugPrint("WebView error: ${error.description}");
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(classroomUrl));
 
-      _controller!.loadRequest(Uri.parse(classroomUrl));
-    } else {
-      _isLoading = false;
-      // On web, launch the class in a new tab immediately
-      _launchClassroomUrl(classroomUrl);
+    // Enable Android-specific WebRTC settings & disable user gesture requirement for media playback
+    if (controller.platform is AndroidWebViewController) {
+      final androidController = controller.platform as AndroidWebViewController;
+      AndroidWebViewController.enableDebugging(false);
+      androidController.setMediaPlaybackRequiresUserGesture(false);
+      androidController.setOnPlatformPermissionRequest(
+        (PlatformWebViewPermissionRequest request) {
+          // Automatically grant WebRTC camera/mic access when requested by Zoom Web SDK
+          request.grant();
+        },
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _controller = controller;
+        _isLoading = false;
+      });
     }
   }
 
@@ -80,6 +132,40 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
     } else {
       debugPrint("Could not launch $url");
     }
+  }
+
+  void _injectZoomOverlayFix() {
+    if (_controller == null) return;
+    const js = '''
+      (function() {
+        var styleId = 'zoom-overlay-fix-style';
+        if (!document.getElementById(styleId)) {
+          var style = document.createElement('style');
+          style.id = styleId;
+          style.type = 'text/css';
+          style.innerHTML = `
+            .aria-aria-modal-component,
+            div[class*="join-audio"],
+            div[class*="media-by-hardware-notice"],
+            .theme-dark .join-audio-container {
+              display: none !important;
+              visibility: hidden !important;
+              pointer-events: none !important;
+            }
+            .footer, .footer-bar, #wc-footer {
+              z-index: 999999 !important;
+              position: fixed !important;
+              bottom: 0 !important;
+              pointer-events: auto !important;
+            }
+          `;
+          (document.head || document.documentElement).appendChild(style);
+        }
+      })();
+    ''';
+    _controller!.runJavaScript(js).catchError((e) {
+      debugPrint("Error injecting Zoom overlay fix JS: \$e");
+    });
   }
 
   @override
@@ -124,7 +210,13 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
       body: SafeArea(
         child: kIsWeb
             ? _buildWebPlaceholder()
-            : WebViewWidget(controller: _controller!),
+            : (_controller == null
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryGreen,
+                    ),
+                  )
+                : WebViewWidget(controller: _controller!)),
       ),
     );
   }

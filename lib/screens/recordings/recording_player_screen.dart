@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:premier_lms/config/theme.dart';
 import 'package:premier_lms/config/api_config.dart';
@@ -80,7 +79,7 @@ class _RecordingPlayerScreenState extends State<RecordingPlayerScreen> {
         _isFullScreen = false;
       });
     }
-    _controller.pauseVideo();
+    _controller.pause();
     
     showDialog(
       context: context,
@@ -104,17 +103,14 @@ class _RecordingPlayerScreenState extends State<RecordingPlayerScreen> {
   }
 
   void _initPlayer() {
-    _controller = YoutubePlayerController.fromVideoId(
-      videoId: _videoId!,
-      autoPlay: true,
-      params: YoutubePlayerParams(
-        showControls: true,
-        showFullscreenButton: false, // We will use our custom fullscreen
+    _controller = YoutubePlayerController(
+      initialVideoId: _videoId!,
+      flags: const YoutubePlayerFlags(
+        autoPlay: false,
         mute: false,
         loop: false,
-        enableJavaScript: true,
-        strictRelatedVideos: true, // rel=0
-        origin: ApiConfig.frontendUrl,
+        isLive: false,
+        forceHD: false,
       ),
     );
     
@@ -134,7 +130,7 @@ class _RecordingPlayerScreenState extends State<RecordingPlayerScreen> {
       ]);
     }
     if (!_isLoading && _videoId != null) {
-      _controller.close();
+      _controller.dispose();
     }
     super.dispose();
   }
@@ -336,7 +332,12 @@ class _RecordingPlayerScreenState extends State<RecordingPlayerScreen> {
         children: [
           YoutubePlayer(
             controller: _controller,
-            backgroundColor: Colors.black,
+            showVideoProgressIndicator: true,
+            progressIndicatorColor: AppColors.primaryGreen,
+            progressColors: const ProgressBarColors(
+              playedColor: AppColors.primaryGreen,
+              handleColor: AppColors.primaryGreen,
+            ),
           ),
           
           // Layer 1: Invisible Shields (Visual Blocking)
