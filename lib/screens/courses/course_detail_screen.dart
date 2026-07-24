@@ -81,18 +81,13 @@ class CourseDetailScreen extends StatelessWidget {
               pinned: true,
             ),
           ],
-          body: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: TabBarView(
-                children: [
-                  _buildOverviewTab(),
-                  _buildCurriculumTab(),
-                  _buildInstructorTab(instructor),
-                  _buildReviewsTab(),
-                ],
-              ),
-            ),
+          body: TabBarView(
+            children: [
+              _buildOverviewTab(),
+              _buildCurriculumTab(),
+              _buildInstructorTab(instructor),
+              _buildReviewsTab(),
+            ],
           ),
         ),
       ),
@@ -112,6 +107,7 @@ class CourseDetailScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Center(
+            heightFactor: 1.0,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: Padding(

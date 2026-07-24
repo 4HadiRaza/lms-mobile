@@ -69,8 +69,8 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
   }
 
   void _initWebView() {
-    final String mobileChromeUserAgent =
-        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 PremierLMSMobileWebView";
+    final String desktopUserAgent =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
     final classroomUrl =
         '${ApiConfig.frontendUrl}/dashboard/classes/${widget.classId}?token=${widget.token}&fromApp=true';
@@ -79,7 +79,7 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
-      ..setUserAgent(mobileChromeUserAgent)
+      ..setUserAgent(desktopUserAgent)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
