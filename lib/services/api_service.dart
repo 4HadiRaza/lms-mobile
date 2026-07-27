@@ -36,8 +36,11 @@ class ApiService {
       onError: (error, handler) async {
         debugPrint('ApiService.onError: statusCode = ${error.response?.statusCode}, path = ${error.requestOptions.path}');
         if (error.response?.statusCode == 401) {
-          final message =
-              error.response?.data?['message']?.toString() ?? '';
+          String message = '';
+          if (error.response?.data is Map) {
+            message =
+                (error.response!.data as Map)['message']?.toString() ?? '';
+          }
           debugPrint('ApiService.onError: 401 message = "$message"');
           if (message.contains('Session expired') ||
               message.contains('logged in from another device')) {

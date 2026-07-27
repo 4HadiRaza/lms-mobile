@@ -13,7 +13,7 @@ class SecurityWrapper extends StatefulWidget {
 }
 
 class _SecurityWrapperState extends State<SecurityWrapper> {
-  bool _isRecording = false;
+  final bool _isRecording = false;
 
   @override
   void initState() {
@@ -25,20 +25,7 @@ class _SecurityWrapperState extends State<SecurityWrapper> {
     // Temporarily disabled for error reporting and screenshot capture
   }
 
-  void _onScreenshot() {
-    // Show a warning (using root scaffold messenger if possible, 
-    // but typically SnackBar needs a context. Since this wraps the app, 
-    // it's tricky to show a SnackBar without a navigator key. 
-    // We will just print for now, as iOS handles the screenshot obscuring natively 
-    // when preventScreenshotOn() is called in newer versions).
-    debugPrint('Screenshot detected!');
-  }
 
-  void _onScreenRecord(bool isCaptured) {
-    setState(() {
-      _isRecording = isCaptured;
-    });
-  }
 
   @override
   void dispose() {

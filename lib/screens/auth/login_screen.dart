@@ -231,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'New here?',
+                        'New student?',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade500,
@@ -259,7 +259,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () =>
                           Navigator.pushNamed(context, '/signup'),
                       child: const Text(
-                        'Sign Up',
+                        'Apply for Admission',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

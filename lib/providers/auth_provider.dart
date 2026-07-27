@@ -70,9 +70,20 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      var backendMsg = e.response?.data?['message'];
+      final responseData = e.response?.data;
+      var backendMsg = responseData is Map ? responseData['message'] : null;
       if (backendMsg is List) backendMsg = backendMsg.join(', ');
-      _error = backendMsg ?? 'Network error: ${e.message}';
+      
+      var detailedErrors = '';
+      if (responseData is Map && responseData['errors'] != null) {
+        if (responseData['errors'] is Map) {
+          detailedErrors = ': ' + (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
+        } else if (responseData['errors'] is List) {
+          detailedErrors = ': ' + (responseData['errors'] as List).join(', ');
+        }
+      }
+      
+      _error = (backendMsg?.toString() ?? 'Network error') + detailedErrors;
       _isLoading = false;
       notifyListeners();
       return false;

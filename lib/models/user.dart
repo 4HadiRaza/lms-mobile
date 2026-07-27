@@ -26,7 +26,10 @@ class User {
       avatar: json['avatar'] ??
           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
       enrolledCourses: (json['enrollments'] as List<dynamic>?)
-              ?.map((e) => (e['course']?['name'] ?? '').toString())
+              ?.map((e) {
+                final courseData = (e as Map)['course'] as Map?;
+                return (courseData?['name'] ?? '').toString();
+              })
               .toList() ??
           [],
     );

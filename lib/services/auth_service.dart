@@ -23,13 +23,17 @@ class AuthService {
     final profileRes = await _api.dio.get(ApiConfig.profile);
     final profile = profileRes.data;
 
+    final userData = data['user'] as Map?;
     final user = User(
-      id: (data['user']?['id'] ?? profile['id']).toString(),
-      name: data['user']?['name'] ?? profile['name'] ?? '',
-      email: data['user']?['email'] ?? profile['email'] ?? '',
-      role: data['user']?['role'] ?? profile['role'] ?? 'student',
+      id: (userData?['id'] ?? profile['id']).toString(),
+      name: userData?['name'] ?? profile['name'] ?? '',
+      email: userData?['email'] ?? profile['email'] ?? '',
+      role: userData?['role'] ?? profile['role'] ?? 'student',
       enrolledCourses: (profile['enrollments'] as List<dynamic>?)
-              ?.map((e) => (e['course']?['name'] ?? '').toString())
+              ?.map((e) {
+                final courseData = (e as Map)['course'] as Map?;
+                return (courseData?['name'] ?? '').toString();
+              })
               .toList() ??
           [],
     );

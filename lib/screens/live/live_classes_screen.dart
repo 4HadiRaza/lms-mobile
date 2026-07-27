@@ -178,28 +178,26 @@ class _LiveClassesScreenState extends State<LiveClassesScreen> {
           if (isUpcoming)
             TextButton(
               onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
+
                 final token = await ApiService().getToken();
                 if (token == null) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Not authenticated.')),
-                    );
-                  }
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Not authenticated.')),
+                  );
                   return;
                 }
                 
-                if (context.mounted) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EmbeddedZoomScreen(
-                        classId: liveClass.id,
-                        token: token,
-                        title: liveClass.courseName ?? 'Virtual Classroom',
-                      ),
+                navigator.push(
+                  MaterialPageRoute(
+                    builder: (_) => EmbeddedZoomScreen(
+                      classId: liveClass.id,
+                      token: token,
+                      title: liveClass.courseName ?? 'Virtual Classroom',
                     ),
+                  ),
                   );
-                }
               },
               style: TextButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen,
