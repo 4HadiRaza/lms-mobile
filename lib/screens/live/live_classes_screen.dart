@@ -56,12 +56,12 @@ class _LiveClassesScreenState extends State<LiveClassesScreen> {
             );
           }
 
-          if (provider.myUpcoming.isEmpty && provider.myPast.isEmpty) {
+          if (provider.myUpcoming.isEmpty) {
             return EmptyState(
               icon: Icons.videocam_off_outlined,
               title: 'No classes scheduled',
               subtitle:
-                  'Your upcoming and past classes will appear here once your enrollment is active.',
+                  'Your upcoming classes will appear here once your enrollment is active.',
               actionText: 'Refresh',
               onAction: provider.loadStudentClasses,
             );
@@ -80,13 +80,6 @@ class _LiveClassesScreenState extends State<LiveClassesScreen> {
                     (c) => _buildClassTile(c, isUpcoming: true),
                   ),
                   const SizedBox(height: 24),
-                ],
-                if (provider.myPast.isNotEmpty) ...[
-                  _buildSectionLabel('Past Classes'),
-                  const SizedBox(height: 10),
-                  ...provider.myPast.map(
-                    (c) => _buildClassTile(c, isUpcoming: false),
-                  ),
                 ],
               ],
             ),

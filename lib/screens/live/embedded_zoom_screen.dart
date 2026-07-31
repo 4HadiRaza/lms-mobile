@@ -138,6 +138,7 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
     if (_controller == null) return;
     const js = '''
       (function() {
+        // 1. Zoom SDK Overlay CSS Fixes
         var styleId = 'zoom-overlay-fix-style';
         if (!document.getElementById(styleId)) {
           var style = document.createElement('style');
@@ -161,10 +162,18 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
           `;
           (document.head || document.documentElement).appendChild(style);
         }
+
+        // 2. Polyfill getDisplayMedia so the Share Screen button renders
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia !== 'function') {
+          navigator.mediaDevices.getDisplayMedia = function() {
+            alert("Screen sharing is not supported in the mobile app. Please use a desktop browser to share your screen.");
+            return Promise.reject(new Error("Screen sharing not supported in WebView."));
+          };
+        }
       })();
     ''';
     _controller!.runJavaScript(js).catchError((e) {
-      debugPrint("Error injecting Zoom overlay fix JS: \$e");
+      debugPrint("Error injecting Zoom overlay fix JS: $e");
     });
   }
 
