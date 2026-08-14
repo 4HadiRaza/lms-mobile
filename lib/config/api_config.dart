@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 /// used by the Next.js frontend.
 class ApiConfig {
   // Production URL
-  static const String _prodUrl = 'https://premier-l-ms-backend-lhy5.vercel.app/api';
+  static const String _prodUrl = 'https://premier-l-ms-backend.vercel.app/api';
 
   // Local Development URLs
   // For Flutter Web and iOS Simulator: http://localhost:3001/api

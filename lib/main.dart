@@ -11,6 +11,7 @@ import 'package:premier_lms/providers/batches_provider.dart';
 import 'package:premier_lms/providers/recordings_provider.dart';
 
 // Screens & Layout
+import 'package:premier_lms/screens/splash/splash_screen.dart';
 import 'package:premier_lms/widgets/main_layout.dart';
 import 'package:premier_lms/widgets/security_wrapper.dart';
 import 'package:premier_lms/screens/auth/login_screen.dart';
@@ -38,13 +39,13 @@ class PremierLMSApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecordingsProvider()),
       ],
       child: MaterialApp(
-        title: 'Premier LMS',
+        title: 'Premier',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         builder: (context, child) {
           return SecurityWrapper(child: child!);
         },
-        home: _buildHomeRoute(),
+        home: const SplashScreen(),
         onGenerateRoute: (settings) {
           // Handle dynamic routes like /course/:slug
           if (settings.name != null &&
@@ -62,7 +63,9 @@ class PremierLMSApp extends StatelessWidget {
           // Static routes
           switch (settings.name) {
             case '/':
-              return MaterialPageRoute(builder: (_) => _buildHomeRoute());
+              return MaterialPageRoute(builder: (_) => const SplashScreen());
+            case '/home':
+              return MaterialPageRoute(builder: (_) => const MainLayout());
             case '/login':
               return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/signup':
@@ -79,28 +82,6 @@ class PremierLMSApp extends StatelessWidget {
           }
         },
       ),
-    );
-  }
-
-  Widget _buildHomeRoute() {
-    return Consumer<AuthProvider>(
-      builder: (context, auth, _) {
-        debugPrint('_buildHomeRoute: isLoading = ${auth.isLoading}, isLoggedIn = ${auth.isLoggedIn}, user = ${auth.user?.email}, isActive = ${auth.user?.isActive}');
-        if (auth.isLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.primaryGreen),
-            ),
-          );
-        }
-        if (auth.isLoggedIn) {
-          if (auth.user != null && !auth.user!.isActive) {
-            return const UnderReviewScreen();
-          }
-          return const MainLayout();
-        }
-        return const LoginScreen();
-      },
     );
   }
 }

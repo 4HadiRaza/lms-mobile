@@ -1,5 +1,3 @@
-
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -80,7 +78,8 @@ class _SignupScreenState extends State<SignupScreen> {
               .map((b) => Map<String, dynamic>.from(b as Map))
               .toList();
           _selectedBatchId = _batches.first['id']?.toString();
-          _courses = (_batches.first['courses'] as List<dynamic>?)
+          _courses =
+              (_batches.first['courses'] as List<dynamic>?)
                   ?.map((c) => Map<String, dynamic>.from(c as Map))
                   .toList() ??
               [];
@@ -108,21 +107,23 @@ class _SignupScreenState extends State<SignupScreen> {
       _dobController.text = '01/01/2000';
       _selectedDob = DateTime(2000, 1, 1);
       _whatsappController.text = '0300-1234567';
-      _emailController.text = 'test${DateTime.now().millisecondsSinceEpoch}@example.com';
+      _emailController.text =
+          'test${DateTime.now().millisecondsSinceEpoch}@example.com';
       _postalAddressController.text = '123 Test St, Test City';
       _passwordController.text = 'password123';
       _confirmPasswordController.text = 'password123';
-      
+
       _qualificationController.text = 'BS Computer Science';
       _passingYearController.text = '2022';
       _instituteController.text = 'Test University';
-      
+
       _emergencyNameController.text = 'Test Emergency Contact';
       _emergencyRelationController.text = 'Brother';
       _emergencyContactController.text = '0300-7654321';
-      
+
       if (_courses.isNotEmpty) {
-        _selectedCourseId = _courses.first['id']?.toString() ?? _courses.first['name'];
+        _selectedCourseId =
+            _courses.first['id']?.toString() ?? _courses.first['name'];
       }
     });
   }
@@ -163,7 +164,10 @@ class _SignupScreenState extends State<SignupScreen> {
           TextButton.icon(
             onPressed: _fillDummyData,
             icon: const Icon(Icons.bolt, color: AppColors.primaryGreen),
-            label: const Text('Test Fill', style: TextStyle(color: AppColors.primaryGreen)),
+            label: const Text(
+              'Test Fill',
+              style: TextStyle(color: AppColors.primaryGreen),
+            ),
           ),
         ],
       ),
@@ -176,8 +180,11 @@ class _SignupScreenState extends State<SignupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Section 1: Personal Information ──
-              _buildSectionHeader(1, 'Personal Information',
-                  Icons.person_outline),
+              _buildSectionHeader(
+                1,
+                'Personal Information',
+                Icons.person_outline,
+              ),
               _buildCard([
                 _buildTextField(
                   controller: _fullNameController,
@@ -241,8 +248,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: 'Enter complete home/office mailing address',
                   icon: Icons.location_on_outlined,
                   maxLines: 2,
-                  validator:
-                      _requiredValidator('Postal address is required'),
+                  validator: _requiredValidator('Postal address is required'),
                 ),
                 _buildTextField(
                   controller: _passwordController,
@@ -299,15 +305,17 @@ class _SignupScreenState extends State<SignupScreen> {
 
               // ── Section 2: Educational Background ──
               _buildSectionHeader(
-                  2, 'Educational Background', Icons.school_outlined),
+                2,
+                'Educational Background',
+                Icons.school_outlined,
+              ),
               _buildCard([
                 _buildTextField(
                   controller: _qualificationController,
                   label: 'Last Qualification',
                   hint: 'e.g. MBA, B.Com',
                   icon: Icons.menu_book_outlined,
-                  validator:
-                      _requiredValidator('Qualification is required'),
+                  validator: _requiredValidator('Qualification is required'),
                 ),
                 _buildTextField(
                   controller: _passingYearController,
@@ -322,8 +330,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   label: 'Institute / Board',
                   hint: 'e.g. University of Peshawar',
                   icon: Icons.account_balance_outlined,
-                  validator:
-                      _requiredValidator('Institute is required'),
+                  validator: _requiredValidator('Institute is required'),
                   isLast: true,
                 ),
               ]),
@@ -332,7 +339,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
               // ── Section 3: Emergency Contact ──
               _buildSectionHeader(
-                  3, 'Emergency Contact', Icons.emergency_outlined),
+                3,
+                'Emergency Contact',
+                Icons.emergency_outlined,
+              ),
               _buildCard([
                 _buildTextField(
                   controller: _emergencyNameController,
@@ -340,7 +350,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: 'e.g. Muhammad Ahmed',
                   icon: Icons.person_outlined,
                   validator: _requiredValidator(
-                      'Emergency contact name is required'),
+                    'Emergency contact name is required',
+                  ),
                 ),
                 _buildTextField(
                   controller: _emergencyRelationController,
@@ -356,7 +367,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
                   validator: _requiredValidator(
-                      'Emergency contact number is required'),
+                    'Emergency contact number is required',
+                  ),
                   isLast: true,
                 ),
               ]),
@@ -365,16 +377,20 @@ class _SignupScreenState extends State<SignupScreen> {
 
               // ── Section 4: Batch & Course Selection ──
               _buildSectionHeader(
-                  4, 'Batch & Course Selection', Icons.class_outlined),
-              _buildCard([
-                _buildBatchAndCourseSelection(),
-              ]),
+                4,
+                'Batch & Course Selection',
+                Icons.class_outlined,
+              ),
+              _buildCard([_buildBatchAndCourseSelection()]),
 
               const SizedBox(height: 20),
 
               // ── Section 5: Document Uploads ──
               _buildSectionHeader(
-                  5, 'Document Uploads', Icons.upload_file_outlined),
+                5,
+                'Document Uploads',
+                Icons.upload_file_outlined,
+              ),
               _buildCard([
                 _buildFileUploadRow(
                   label: 'CNIC Front & Back',
@@ -399,7 +415,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
               // ── Section 6: Payment Information ──
               _buildSectionHeader(
-                  6, 'Payment Information', Icons.payment_outlined),
+                6,
+                'Payment Information',
+                Icons.payment_outlined,
+              ),
               _buildCard([
                 _buildPaymentMethodDropdown(),
                 const SizedBox(height: 14),
@@ -425,9 +444,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         )
                       : const Icon(Icons.send_outlined, size: 20),
                   label: Text(
-                    _isSubmitting
-                        ? 'Submitting...'
-                        : 'Submit Application & Request Enrollment',
+                    _isSubmitting ? 'Submitting...' : 'Submit Application',
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -536,7 +553,7 @@ class _SignupScreenState extends State<SignupScreen> {
         border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -616,9 +633,9 @@ class _SignupScreenState extends State<SignupScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: AppColors.primaryGreen,
-                ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.primaryGreen),
           ),
           child: child!,
         );
@@ -639,7 +656,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: DropdownButtonFormField<String>(
-        value: _gender,
+        initialValue: _gender,
         decoration: const InputDecoration(
           labelText: 'Gender',
           prefixIcon: Icon(Icons.wc_outlined, size: 20),
@@ -664,7 +681,7 @@ class _SignupScreenState extends State<SignupScreen> {
         // Batch dropdown
         if (_batches.isNotEmpty) ...[
           DropdownButtonFormField<String>(
-            value: _selectedBatchId,
+            initialValue: _selectedBatchId,
             decoration: const InputDecoration(
               labelText: 'Select Academic Batch',
               prefixIcon: Icon(Icons.date_range_outlined, size: 20),
@@ -684,20 +701,20 @@ class _SignupScreenState extends State<SignupScreen> {
               }
               return DropdownMenuItem(
                 value: b['id']?.toString(),
-                child: Text(displayText,
-                    style: const TextStyle(fontSize: 13)),
+                child: Text(displayText, style: const TextStyle(fontSize: 13)),
               );
             }).toList(),
             onChanged: (v) {
               final batch = _batches.firstWhere(
-                  (b) => b['id']?.toString() == v,
-                  orElse: () => <String, dynamic>{});
+                (b) => b['id']?.toString() == v,
+                orElse: () => <String, dynamic>{},
+              );
               setState(() {
                 _selectedBatchId = v;
                 _selectedCourseId = null;
-                _courses = (batch['courses'] as List<dynamic>?)
-                        ?.map(
-                            (c) => Map<String, dynamic>.from(c as Map))
+                _courses =
+                    (batch['courses'] as List<dynamic>?)
+                        ?.map((c) => Map<String, dynamic>.from(c as Map))
                         .toList() ??
                     [];
               });
@@ -717,8 +734,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline,
-                  size: 16, color: Colors.amber.shade700),
+              Icon(Icons.info_outline, size: 16, color: Colors.amber.shade700),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -738,8 +754,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Center(
               child: Text(
                 'Loading courses...',
-                style: TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
             ),
           )
@@ -759,8 +774,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primaryGreen
-                          .withOpacity(0.05)
+                      ? AppColors.primaryGreen.withValues(alpha: 0.05)
                       : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
@@ -805,10 +819,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.red.shade400,
-                                    decoration:
-                                        TextDecoration.lineThrough,
-                                    decorationColor:
-                                        Colors.red.shade400,
+                                    decoration: TextDecoration.lineThrough,
+                                    decorationColor: Colors.red.shade400,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -848,8 +860,9 @@ class _SignupScreenState extends State<SignupScreen> {
         Icon(
           file != null ? Icons.check_circle : Icons.cloud_upload_outlined,
           size: 22,
-          color:
-              file != null ? AppColors.primaryGreen : AppColors.textSecondary,
+          color: file != null
+              ? AppColors.primaryGreen
+              : AppColors.textSecondary,
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -884,8 +897,7 @@ class _SignupScreenState extends State<SignupScreen> {
           icon: const Icon(Icons.attach_file, size: 16),
           label: Text(file != null ? 'Change' : 'Choose'),
           style: OutlinedButton.styleFrom(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             textStyle: const TextStyle(fontSize: 12),
             side: BorderSide(
               color: file != null
@@ -915,19 +927,17 @@ class _SignupScreenState extends State<SignupScreen> {
   // ═══════════════════════════════════════════
   Widget _buildPaymentMethodDropdown() {
     return DropdownButtonFormField<String>(
-      value: _paymentMethod,
+      initialValue: _paymentMethod,
       decoration: const InputDecoration(
         labelText: 'Payment Method',
         prefixIcon: Icon(Icons.account_balance_wallet_outlined, size: 20),
       ),
       items: const [
-        DropdownMenuItem(
-            value: 'Bank Transfer', child: Text('Bank Transfer')),
+        DropdownMenuItem(value: 'Bank Transfer', child: Text('Bank Transfer')),
         DropdownMenuItem(value: 'JazzCash', child: Text('JazzCash')),
         DropdownMenuItem(value: 'EasyPaisa', child: Text('EasyPaisa')),
       ],
-      onChanged: (v) =>
-          setState(() => _paymentMethod = v ?? 'Bank Transfer'),
+      onChanged: (v) => setState(() => _paymentMethod = v ?? 'Bank Transfer'),
     );
   }
 
@@ -936,10 +946,10 @@ class _SignupScreenState extends State<SignupScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.primaryGreen.withOpacity(0.04),
+        color: AppColors.primaryGreen.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: AppColors.primaryGreen.withOpacity(0.15),
+          color: AppColors.primaryGreen.withValues(alpha: 0.15),
         ),
       ),
       child: Column(
@@ -947,10 +957,11 @@ class _SignupScreenState extends State<SignupScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline,
-                  size: 16,
-                  color:
-                      AppColors.primaryGreen.withOpacity(0.7)),
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: AppColors.primaryGreen.withValues(alpha: 0.7),
+              ),
               const SizedBox(width: 6),
               const Text(
                 'Official Academy Account Details:',
@@ -1020,8 +1031,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   String _formatNumber(dynamic value) {
     if (value == null) return '0';
-    final num parsed =
-        value is num ? value : num.tryParse(value.toString()) ?? 0;
+    final num parsed = value is num
+        ? value
+        : num.tryParse(value.toString()) ?? 0;
     return NumberFormat('#,###').format(parsed);
   }
 
@@ -1088,19 +1100,27 @@ class _SignupScreenState extends State<SignupScreen> {
       } else {
         try {
           final parts = _dobController.text.trim().split('/');
-          dobIso = DateTime.utc(int.parse(parts[2]), int.parse(parts[0]), int.parse(parts[1])).toIso8601String();
+          dobIso = DateTime.utc(
+            int.parse(parts[2]),
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+          ).toIso8601String();
         } catch (_) {
           dobIso = DateTime.now().toUtc().toIso8601String();
         }
       }
 
       // Calculate fee
-      final feeStr = selectedCourse['discountedFee']?.toString() ?? selectedCourse['fee']?.toString() ?? '0';
-      final totalAmount = int.tryParse(feeStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-      
+      final feeStr =
+          selectedCourse['discountedFee']?.toString() ??
+          selectedCourse['fee']?.toString() ??
+          '0';
+      final totalAmount =
+          int.tryParse(feeStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
       // We upload files first (if backend supports /uploads) or ignore if not required
       // Assuming file uploads aren't strictly required by the Zod schema shown in the error.
-      // If they are, they would be URLs. 
+      // If they are, they would be URLs.
 
       // Build JSON data
       final Map<String, dynamic> jsonData = {
@@ -1128,23 +1148,30 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil('/under-review', (_) => false);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/under-review', (_) => false);
     } catch (e) {
       if (mounted) {
         String message = 'Submission failed. Please try again.';
         if (e is DioException) {
           final responseData = e.response?.data;
-          final backendMsg = responseData is Map ? responseData['message'] : null;
+          final backendMsg = responseData is Map
+              ? responseData['message']
+              : null;
           if (backendMsg is String) message = backendMsg;
           if (backendMsg is List) message = backendMsg.join(', ');
-          
+
           var detailedErrors = '';
           if (responseData is Map && responseData['errors'] != null) {
             if (responseData['errors'] is Map) {
-              detailedErrors = ': ' + (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
+              final joined = (responseData['errors'] as Map).values
+                  .map((v) => v is List ? v.join(', ') : v)
+                  .join(' | ');
+              detailedErrors = ': $joined';
             } else if (responseData['errors'] is List) {
-              detailedErrors = ': ' + (responseData['errors'] as List).join(', ');
+              final joined = (responseData['errors'] as List).join(', ');
+              detailedErrors = ': $joined';
             }
           }
           message += detailedErrors;

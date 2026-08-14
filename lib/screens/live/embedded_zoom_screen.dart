@@ -138,9 +138,10 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
     if (_controller == null) return;
     const js = '''
       (function() {
-        // 1. Zoom SDK Overlay CSS Fixes
+        // 1. Zoom SDK Overlay & Share Screen Suppression CSS Fixes
         var styleId = 'zoom-overlay-fix-style';
-        if (!document.getElementById(styleId)) {
+        var existingStyle = document.getElementById(styleId);
+        if (!existingStyle) {
           var style = document.createElement('style');
           style.id = styleId;
           style.type = 'text/css';
@@ -159,17 +160,45 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
               bottom: 0 !important;
               pointer-events: auto !important;
             }
+            /* Hide Zoom Screen Share Button */
+            button[aria-label*="Share Screen"],
+            button[aria-label*="share screen"],
+            button[aria-label*="Share"],
+            button[aria-label*="share"],
+            button[class*="share-btn"],
+            div[class*="share-btn"],
+            .footer-button__share-screen,
+            .footer-button-base__share,
+            #wc-footer .share-button,
+            [class*="share-screen"],
+            [class*="share-button"],
+            [aria-label="Share Screen"],
+            [aria-label="Share screen"],
+            [aria-label="share screen"] {
+              display: none !important;
+              visibility: hidden !important;
+              pointer-events: none !important;
+              opacity: 0 !important;
+              width: 0 !important;
+              height: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
           `;
           (document.head || document.documentElement).appendChild(style);
         }
 
-        // 2. Polyfill getDisplayMedia so the Share Screen button renders
-        if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia !== 'function') {
-          navigator.mediaDevices.getDisplayMedia = function() {
-            alert("Screen sharing is not supported in the mobile app. Please use a desktop browser to share your screen.");
-            return Promise.reject(new Error("Screen sharing not supported in WebView."));
-          };
+        // 2. Active DOM Mutation Observer to continuously remove share buttons if injected dynamically
+        function hideShareButtons() {
+          var shareButtons = document.querySelectorAll('button[aria-label*="Share"], button[aria-label*="share"], .footer-button__share-screen, [class*="share-screen"]');
+          shareButtons.forEach(function(btn) {
+            btn.style.display = 'none';
+            btn.style.visibility = 'hidden';
+            btn.style.pointerEvents = 'none';
+          });
         }
+        hideShareButtons();
+        setInterval(hideShareButtons, 1000);
       })();
     ''';
     _controller!.runJavaScript(js).catchError((e) {

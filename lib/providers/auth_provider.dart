@@ -51,8 +51,28 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
+    } on DioException catch (e) {
+      final responseData = e.response?.data;
+      var backendMsg = responseData is Map ? responseData['message'] : null;
+      if (backendMsg is List) backendMsg = backendMsg.join(', ');
+      
+      var detailedErrors = '';
+      if (responseData is Map && responseData['errors'] != null) {
+        if (responseData['errors'] is Map) {
+          final joined = (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
+          detailedErrors = ': $joined';
+        } else if (responseData['errors'] is List) {
+          final joined = (responseData['errors'] as List).join(', ');
+          detailedErrors = ': $joined';
+        }
+      }
+      
+      _error = '${backendMsg?.toString() ?? 'Invalid email or password.'}$detailedErrors';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
-      _error = 'Login failed. Please check your credentials.';
+      _error = 'Login error: $e';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -77,13 +97,15 @@ class AuthProvider extends ChangeNotifier {
       var detailedErrors = '';
       if (responseData is Map && responseData['errors'] != null) {
         if (responseData['errors'] is Map) {
-          detailedErrors = ': ' + (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
+          final joined = (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
+          detailedErrors = ': $joined';
         } else if (responseData['errors'] is List) {
-          detailedErrors = ': ' + (responseData['errors'] as List).join(', ');
+          final joined = (responseData['errors'] as List).join(', ');
+          detailedErrors = ': $joined';
         }
       }
       
-      _error = (backendMsg?.toString() ?? 'Network error') + detailedErrors;
+      _error = '${backendMsg?.toString() ?? 'Network error'}$detailedErrors';
       _isLoading = false;
       notifyListeners();
       return false;

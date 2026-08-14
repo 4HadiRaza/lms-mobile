@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (auth.user != null && !auth.user!.isActive) {
         Navigator.of(context).pushNamedAndRemoveUntil('/under-review', (_) => false);
       } else {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,37 +67,36 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Logo
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primaryGreen,
-                        AppColors.primaryGreenLight,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            AppColors.primaryGreen.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'P',
-                      style: TextStyle(
-                        color: AppColors.accentGold,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                SizedBox(
+                  height: 84,
+                  child: Image.asset(
+                    'assets/logo-new.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/app_icon.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 64,
+                            height: 64,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryGreen,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'P',
+                              style: TextStyle(
+                                color: AppColors.accentGold,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
 

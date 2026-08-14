@@ -23,16 +23,51 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="premier_lms">
+  <meta name="apple-mobile-web-app-title" content="Premier">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>premier_lms</title>
+  <title>Premier</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    /* Prevent text selection and disable printing of content */
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    @media print {
+      html, body {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    }
+  </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
+  <script>
+    // Discourage standard keyboard shortcuts for inspect/save/print
+    document.addEventListener('keydown', function (e) {
+      // Ctrl+P / Cmd+P (Print)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.keyCode === 80)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // Ctrl+S / Cmd+S (Save)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // Ctrl+Shift+I / Cmd+Option+I (Inspect)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.keyCode === 73)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

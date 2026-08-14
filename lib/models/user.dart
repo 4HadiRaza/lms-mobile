@@ -18,6 +18,21 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    List<String> courses = [];
+    if (json['enrolledCourses'] != null && json['enrolledCourses'] is List) {
+      courses = (json['enrolledCourses'] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
+    } else if (json['enrollments'] != null && json['enrollments'] is List) {
+      courses = (json['enrollments'] as List<dynamic>)
+          .map((e) {
+            final courseData = (e as Map)['course'] as Map?;
+            return (courseData?['name'] ?? '').toString();
+          })
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+
     return User(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
@@ -25,13 +40,7 @@ class User {
       role: json['role'] ?? 'student',
       avatar: json['avatar'] ??
           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-      enrolledCourses: (json['enrollments'] as List<dynamic>?)
-              ?.map((e) {
-                final courseData = (e as Map)['course'] as Map?;
-                return (courseData?['name'] ?? '').toString();
-              })
-              .toList() ??
-          [],
+      enrolledCourses: courses,
     );
   }
 
