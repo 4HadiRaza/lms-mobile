@@ -13,12 +13,25 @@ import 'package:premier_lms/screens/profile/profile_screen.dart';
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
+  /// Allows child widgets anywhere in the tree to switch the active tab.
+  static void switchTab(BuildContext context, int index) {
+    final state = context.findAncestorStateOfType<_MainLayoutState>();
+    if (state != null) {
+      state.setTab(index);
+    }
+  }
+
   @override
   State<MainLayout> createState() => _MainLayoutState();
 }
 
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
+
+  void setTab(int index) {
+    setState(() => _currentIndex = index);
+    _onTabChanged(index);
+  }
 
   final List<Widget> _screens = const [
     HomeScreen(),

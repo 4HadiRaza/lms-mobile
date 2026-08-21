@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
 import 'package:premier_lms/models/course.dart';
-import 'package:premier_lms/widgets/star_rating.dart';
+import 'package:premier_lms/providers/auth_provider.dart';
 
 /// Course card widget matching CourseCard.tsx component.
 class CourseCard extends StatelessWidget {
@@ -13,13 +14,31 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final isEnrolled =
+        auth.isLoggedIn && auth.user != null && auth.user!.isCourseEnrolled(course.title);
+    final userBatch = auth.user?.getBatchNameForCourse(course.title);
+    final displayBatch = userBatch ?? course.batchName;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderLight),
+          border: Border.all(
+            color: isEnrolled
+                ? AppColors.primaryGreen.withValues(alpha: 0.3)
+                : AppColors.borderLight,
+            width: isEnrolled ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -50,8 +69,47 @@ class CourseCard extends StatelessWidget {
                           color: AppColors.textSecondary),
                     ),
                   ),
-                  // Badge
-                  if (course.badge != null)
+
+                  // Enrolled Badge (Top Right)
+                  if (isEnrolled)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGreen,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle,
+                                size: 12, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text(
+                              'ENROLLED',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  // Marketing Badge (Top Left)
+                  if (course.badge != null && !isEnrolled)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -97,6 +155,53 @@ class CourseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
 
+                  // Batch Name Tag
+                  if (displayBatch != null && displayBatch.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: isEnrolled
+                            ? const Color(0xFFECFDF5)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isEnrolled
+                              ? const Color(0xFFA7F3D0)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.layers_outlined,
+                            size: 11,
+                            color: isEnrolled
+                                ? AppColors.primaryGreen
+                                : const Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              'Batch: $displayBatch',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isEnrolled
+                                    ? const Color(0xFF065F46)
+                                    : const Color(0xFF475569),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+
                   // Instructor
                   Text(
                     course.instructor,
@@ -104,31 +209,6 @@ class CourseCard extends StatelessWidget {
                       fontSize: 11,
                       color: AppColors.textSecondary,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Rating
-                  Row(
-                    children: [
-                      StarRating(rating: course.rating, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${course.rating}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${course.reviewCount})',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 4),
 
@@ -142,8 +222,34 @@ class CourseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Price
-                  _buildPrice(),
+                  // Price / Enrolled Status
+                  if (isEnrolled)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check,
+                              size: 13, color: AppColors.primaryGreen),
+                          SizedBox(width: 4),
+                          Text(
+                            'Active Student',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryGreen,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    _buildPrice(),
                 ],
               ),
             ),

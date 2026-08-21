@@ -74,6 +74,8 @@ class Course {
   final int lessonCount;
   final List<String> tags;
   final String? badge;
+  final String? batchName;
+  final List<String> batchNames;
   final String lastUpdated;
   final String language;
   final List<String> whatYouWillLearn;
@@ -103,6 +105,8 @@ class Course {
     this.lessonCount = 0,
     this.tags = const [],
     this.badge,
+    this.batchName,
+    this.batchNames = const [],
     this.lastUpdated = '',
     this.language = 'English & Urdu',
     this.whatYouWillLearn = const [],
@@ -145,6 +149,28 @@ class Course {
 
     final name = json['name'] ?? '';
 
+    String? extractedBatchName;
+    List<String> extractedBatchNames = [];
+    if (json['batches'] != null && json['batches'] is List) {
+      final bList = json['batches'] as List;
+      extractedBatchNames = bList
+          .map((b) => (b['name'] ?? '').toString())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (extractedBatchNames.isNotEmpty) {
+        extractedBatchName = extractedBatchNames.first;
+      }
+    } else if (json['batchName'] != null &&
+        json['batchName'].toString().isNotEmpty) {
+      extractedBatchName = json['batchName'].toString();
+      extractedBatchNames = [extractedBatchName];
+    } else if (json['batch'] != null && json['batch'] is Map) {
+      extractedBatchName = json['batch']['name']?.toString();
+      if (extractedBatchName != null && extractedBatchName.isNotEmpty) {
+        extractedBatchNames = [extractedBatchName];
+      }
+    }
+
     return Course(
       id: json['id']?.toString() ?? '',
       slug: name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
@@ -175,6 +201,8 @@ class Course {
         json['level'] ?? 'Intermediate',
       ],
       badge: json['badge'],
+      batchName: extractedBatchName,
+      batchNames: extractedBatchNames,
       lastUpdated: json['lastUpdated'] ?? 'June 2026',
       language: json['language'] ?? 'English & Urdu',
       whatYouWillLearn: (json['whatYouWillLearn'] as List<dynamic>?)

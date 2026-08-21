@@ -256,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     GestureDetector(
                       onTap: () =>
-                          Navigator.pushNamed(context, '/signup'),
+                          Navigator.pushNamed(context, '/admission'),
                       child: const Text(
                         'Apply for Admission',
                         style: TextStyle(

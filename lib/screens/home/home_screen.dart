@@ -10,6 +10,7 @@ import 'package:premier_lms/widgets/live_class_card.dart';
 import 'package:premier_lms/widgets/batch_card.dart';
 import 'package:premier_lms/widgets/section_header.dart';
 import 'package:premier_lms/widgets/shimmer_loading.dart';
+import 'package:premier_lms/widgets/main_layout.dart';
 
 /// Home screen — compact welcome card, upcoming classes, featured courses, batches.
 /// Replaces the large hero banner web layout.
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
           slivers: [
             // App Bar
             SliverAppBar(
-              expandedHeight: 180,
+              expandedHeight: 140,
               floating: false,
               pinned: true,
               backgroundColor: AppColors.primaryGreen,
@@ -135,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
@@ -156,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 'Professional Tax & Accounting Education',
                 style: TextStyle(
@@ -164,44 +165,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 13,
                 ),
               ),
-              const SizedBox(height: 12),
-              // Quick stats
-              Row(
-                children: [
-                  _buildStatPill(Icons.book_outlined, '10+ Courses'),
-                  const SizedBox(width: 8),
-                  _buildStatPill(Icons.people_outlined, '5,000+ Students'),
-                ],
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatPill(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppColors.accentGold),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -217,9 +183,10 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionHeader(
+              SectionHeader(
                 title: 'Upcoming Classes',
                 actionText: 'View All',
+                onAction: () => MainLayout.switchTab(context, 2),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -260,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: 'Featured Courses',
                 count: provider.allCourses.length,
                 actionText: 'View All',
+                onAction: () => MainLayout.switchTab(context, 1),
               ),
               const SizedBox(height: 8),
               if (provider.isLoading)
@@ -273,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxCrossAxisExtent: 300,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 320,
+                      mainAxisExtent: 235,
                     ),
                     itemCount: 4,
                     itemBuilder: (_, __) => const ShimmerCourseCard(),
@@ -290,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxCrossAxisExtent: 300,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 320,
+                      mainAxisExtent: 235,
                     ),
                     itemCount: provider.allCourses.length > 4
                         ? 4
