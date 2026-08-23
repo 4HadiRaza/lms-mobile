@@ -1,17 +1,27 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:premier_lms/config/api_config.dart';
-
 import 'package:flutter/foundation.dart';
 
-/// Dio-based HTTP client mirroring the Axios setup in api.ts.
-/// Handles JWT attachment and 401 auto-logout.
+/// Dio-based HTTP client with enterprise-grade secure token storage
+/// using Android Keystore and iOS Keychain via FlutterSecureStorage.
+/// Includes automatic migration from plaintext SharedPreferences.
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
 
   late final Dio dio;
   String? _cachedToken;
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock,
+    ),
+  );
 
   /// Callback invoked on 401 session expiry — set by AuthProvider.
   void Function()? onSessionExpired;
@@ -28,7 +38,7 @@ class ApiService {
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final token = _cachedToken ?? await getToken();
-        if (token != null) {
+        if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         handler.next(options);
@@ -41,10 +51,8 @@ class ApiService {
             message =
                 (error.response!.data as Map)['message']?.toString() ?? '';
           }
-          debugPrint('ApiService.onError: 401 message = "$message"');
           if (message.contains('Session expired') ||
               message.contains('logged in from another device')) {
-            debugPrint('ApiService.onError: Session expired matched. Invalidating session...');
             await clearAuth();
             onSessionExpired?.call();
           }
@@ -54,33 +62,99 @@ class ApiService {
     ));
   }
 
+  /// Securely saves access token in Android Keystore / iOS Keychain
   Future<void> saveToken(String token) async {
     _cachedToken = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('accessToken', token);
+    await _secureStorage.write(key: 'accessToken', value: token);
+    
+    // Clean up any legacy plaintext copy
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.containsKey('accessToken')) {
+        await prefs.remove('accessToken');
+      }
+    } catch (_) {}
   }
 
+  /// Retrieves token from Secure Storage with seamless migration from legacy SharedPreferences
   Future<String?> getToken() async {
     if (_cachedToken != null) return _cachedToken;
-    final prefs = await SharedPreferences.getInstance();
-    _cachedToken = prefs.getString('accessToken');
-    return _cachedToken;
+
+    // 1. Try reading from hardware-backed secure storage
+    try {
+      final secureToken = await _secureStorage.read(key: 'accessToken');
+      if (secureToken != null && secureToken.isNotEmpty) {
+        _cachedToken = secureToken;
+        return _cachedToken;
+      }
+    } catch (e) {
+      debugPrint('SecureStorage read error: $e');
+    }
+
+    // 2. Migration Path: Check legacy SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final legacyToken = prefs.getString('accessToken');
+      if (legacyToken != null && legacyToken.isNotEmpty) {
+        // Migrate to secure storage
+        await _secureStorage.write(key: 'accessToken', value: legacyToken);
+        await prefs.remove('accessToken');
+        _cachedToken = legacyToken;
+        return _cachedToken;
+      }
+    } catch (e) {
+      debugPrint('Legacy token migration error: $e');
+    }
+
+    return null;
   }
 
+  /// Clears tokens and session data from secure storage and legacy preferences
   Future<void> clearAuth() async {
     _cachedToken = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken');
-    await prefs.remove('user');
+    try {
+      await _secureStorage.delete(key: 'accessToken');
+      await _secureStorage.delete(key: 'user');
+    } catch (_) {}
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('accessToken');
+      await prefs.remove('user');
+    } catch (_) {}
   }
 
+  /// Securely saves user session JSON
   Future<void> saveUser(String userJson) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user', userJson);
+    await _secureStorage.write(key: 'user', value: userJson);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.containsKey('user')) {
+        await prefs.remove('user');
+      }
+    } catch (_) {}
   }
 
+  /// Retrieves user session JSON from secure storage with legacy migration
   Future<String?> getSavedUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user');
+    try {
+      final secureUser = await _secureStorage.read(key: 'user');
+      if (secureUser != null && secureUser.isNotEmpty) {
+        return secureUser;
+      }
+    } catch (_) {}
+
+    // Legacy migration check for user profile
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final legacyUser = prefs.getString('user');
+      if (legacyUser != null && legacyUser.isNotEmpty) {
+        await _secureStorage.write(key: 'user', value: legacyUser);
+        await prefs.remove('user');
+        return legacyUser;
+      }
+    } catch (_) {}
+
+    return null;
   }
 }

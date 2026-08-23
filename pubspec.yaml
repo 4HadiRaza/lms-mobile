@@ -46,6 +46,7 @@ dependencies:
   youtube_player_flutter: ^9.1.1
   pointer_interceptor: ^0.10.1+2
   shared_preferences: ^2.5.5
+  flutter_secure_storage: ^9.2.4
   webview_flutter: ^4.0.0
   webview_flutter_android: ^4.0.0
   permission_handler: ^11.3.1
