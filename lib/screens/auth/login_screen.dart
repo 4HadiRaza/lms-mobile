@@ -184,7 +184,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 8),
+
+                      // Forgot Password link (TEMPORARILY REMOVED)
+                      /*
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/forgot-password'),
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryGreen,
+                            ),
+                          ),
+                        ),
+                      ),
+                      */
+
+                      const SizedBox(height: 16),
 
                       // Sign In button
                       SizedBox(

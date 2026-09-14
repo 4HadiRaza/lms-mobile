@@ -84,4 +84,21 @@ class AuthService {
       },
     );
   }
+
+  /// Request a password reset email.
+  /// Sends the email to the backend; the backend sends a reset link.
+  Future<void> forgotPassword(String email) async {
+    await _api.dio.post(
+      ApiConfig.forgotPassword,
+      data: {'email': email},
+    );
+  }
+
+  /// Reset password using the token received via email.
+  Future<void> resetPassword(String token, String newPassword) async {
+    await _api.dio.post(
+      ApiConfig.resetPassword,
+      data: {'token': token, 'newPassword': newPassword},
+    );
+  }
 }

@@ -33,7 +33,7 @@ class ApiConfig {
 
   static String get frontendUrl {
     if (!kDebugMode || useProdInDebug) {
-      return 'https://premier-lms-frontend.vercel.app';
+      return 'https://www.premiertaxschool.com';
     }
     
     if (kIsWeb) {
@@ -53,6 +53,8 @@ class ApiConfig {
   static const String profile = '/auth/profile';
   static const String logout = '/auth/logout';
   static const String changePassword = '/auth/change-password';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String resetPassword = '/auth/reset-password';
 
   // Courses
   static const String courses = '/courses';

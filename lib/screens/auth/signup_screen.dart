@@ -29,12 +29,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _whatsappController = TextEditingController();
   final _emailController = TextEditingController();
   final _postalAddressController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   String _gender = 'Male';
   DateTime? _selectedDob;
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
 
   // ── 2. Educational Background ──
   final _qualificationController = TextEditingController();
@@ -110,8 +106,6 @@ class _SignupScreenState extends State<SignupScreen> {
       _emailController.text =
           'test${DateTime.now().millisecondsSinceEpoch}@example.com';
       _postalAddressController.text = '123 Test St, Test City';
-      _passwordController.text = 'password123';
-      _confirmPasswordController.text = 'password123';
 
       _qualificationController.text = 'BS Computer Science';
       _passingYearController.text = '2022';
@@ -138,8 +132,6 @@ class _SignupScreenState extends State<SignupScreen> {
     _whatsappController.dispose();
     _emailController.dispose();
     _postalAddressController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _qualificationController.dispose();
     _passingYearController.dispose();
     _instituteController.dispose();
@@ -249,54 +241,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   icon: Icons.location_on_outlined,
                   maxLines: 2,
                   validator: _requiredValidator('Postal address is required'),
-                ),
-                _buildTextField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  hint: '••••••••',
-                  icon: Icons.lock_outlined,
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required';
-                    if (v.length < 8) return 'Minimum 8 characters';
-                    return null;
-                  },
-                ),
-                _buildTextField(
-                  controller: _confirmPasswordController,
-                  label: 'Confirm Password',
-                  hint: '••••••••',
-                  icon: Icons.lock_outline,
-                  obscureText: _obscureConfirm,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirm
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscureConfirm = !_obscureConfirm),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (v != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
                   isLast: true,
                 ),
               ]),
@@ -1066,27 +1010,6 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       final api = ApiService();
 
-      // First register the user account
-      final auth = context.read<AuthProvider>();
-      final signupSuccess = await auth.signup(
-        _fullNameController.text.trim(),
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
-
-      if (!signupSuccess) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(auth.error ?? 'Registration failed'),
-              backgroundColor: Colors.red.shade600,
-            ),
-          );
-        }
-        setState(() => _isSubmitting = false);
-        return;
-      }
-
       // Find the course name for submission
       final selectedCourse = _courses.firstWhere(
         (c) => (c['id']?.toString() ?? c['name']) == _selectedCourseId,
@@ -1148,9 +1071,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('/under-review', (_) => false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your application has been received! Our admissions department will review it. Upon approval, your credentials will be sent to your email.'),
+          backgroundColor: AppColors.primaryGreen,
+          duration: Duration(seconds: 5),
+        ),
+      );
+
+      Navigator.of(context).pop(); // Go back to login screen
     } catch (e) {
       if (mounted) {
         String message = 'Submission failed. Please try again.';

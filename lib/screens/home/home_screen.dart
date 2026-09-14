@@ -241,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxCrossAxisExtent: 300,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 235,
+                      mainAxisExtent: 265,
                     ),
                     itemCount: 4,
                     itemBuilder: (_, __) => const ShimmerCourseCard(),
@@ -258,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxCrossAxisExtent: 300,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 235,
+                      mainAxisExtent: 265,
                     ),
                     itemCount: provider.allCourses.length > 4
                         ? 4

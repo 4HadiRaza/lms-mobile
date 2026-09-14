@@ -19,6 +19,8 @@ import 'package:premier_lms/screens/auth/signup_screen.dart';
 import 'package:premier_lms/screens/auth/under_review_screen.dart';
 import 'package:premier_lms/screens/courses/course_detail_screen.dart';
 import 'package:premier_lms/screens/admission/admission_screen.dart';
+import 'package:premier_lms/screens/auth/forgot_password_screen.dart';
+import 'package:premier_lms/screens/auth/reset_password_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,6 +79,13 @@ class PremierLMSApp extends StatelessWidget {
             case '/admission':
               return MaterialPageRoute(
                   builder: (_) => const AdmissionScreen());
+            case '/forgot-password':
+              return MaterialPageRoute(
+                  builder: (_) => const ForgotPasswordScreen());
+            case '/reset-password':
+              final token = settings.arguments as String? ?? '';
+              return MaterialPageRoute(
+                  builder: (_) => ResetPasswordScreen(token: token));
             default:
               return null; // Let home handle '/' or unknown routes fallback
           }

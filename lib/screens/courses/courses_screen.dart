@@ -178,7 +178,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                       maxCrossAxisExtent: 300,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 235,
+                      mainAxisExtent: 265,
                     ),
                     itemCount: courses.length,
                     itemBuilder: (_, index) {
@@ -209,7 +209,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
         maxCrossAxisExtent: 300,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        mainAxisExtent: 235,
+        mainAxisExtent: 265,
       ),
       itemCount: 6,
       itemBuilder: (_, __) => const ShimmerCourseCard(),
