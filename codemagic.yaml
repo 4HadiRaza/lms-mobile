@@ -14,6 +14,8 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter packages pub get
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles
       - name: Flutter build ipa and sign
         script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
     artifacts:
