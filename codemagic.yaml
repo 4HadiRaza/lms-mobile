@@ -5,19 +5,27 @@ workflows:
     integrations:
       app_store_connect: Premier Academy
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.rajagulfam.premier
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Initialize keychain
+        script: keychain initialize
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files "com.rajagulfam.premier" \
+            --type IOS_APP_STORE \
+            --create
+      - name: Install certificates into keychain
+        script: keychain add-certificates
       - name: Get Flutter packages
         script: flutter packages pub get
       - name: Set up code signing settings on Xcode project
         script: xcode-project use-profiles
       - name: Flutter build ipa and sign
-        script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
