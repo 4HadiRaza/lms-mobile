@@ -49,6 +49,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   webview_flutter: ^4.0.0
   webview_flutter_android: ^4.0.0
+  webview_flutter_wkwebview: ^3.13.0
   permission_handler: ^11.3.1
   image_picker: ^1.1.2
   firebase_core: ^4.12.1

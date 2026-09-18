@@ -49,5 +49,9 @@
 	<string>This app requires access to your camera to join virtual classroom video meetings.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires access to your microphone to participate in virtual classroom audio discussions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to attach payment receipts during admission enrollment.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

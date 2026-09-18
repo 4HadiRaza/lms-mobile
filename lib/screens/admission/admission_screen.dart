@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/api_config.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -372,52 +373,129 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
   }
 
   void _viewFilePreview(String name, String filename) {
+    String fileUrl = filename.trim();
+    if (fileUrl.startsWith('//')) {
+      fileUrl = 'https:$fileUrl';
+    } else if (fileUrl.startsWith('/')) {
+      final base = ApiConfig.baseUrl.endsWith('/api')
+          ? ApiConfig.baseUrl.substring(0, ApiConfig.baseUrl.length - 4)
+          : ApiConfig.baseUrl;
+      fileUrl = '$base$fileUrl';
+    }
+
+    final isNetworkImage = (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) &&
+        !fileUrl.toLowerCase().endsWith('.pdf');
+
+    final displayFilename = (filename.contains('/') && filename.split('/').last.isNotEmpty)
+        ? filename.split('/').last
+        : filename;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(name, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+            Expanded(
+              child: Text(
+                name,
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.close, size: 20),
               onPressed: () => Navigator.pop(ctx),
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.insert_drive_file, size: 48, color: AppColors.primaryGreen),
-                  const SizedBox(height: 8),
-                  Text(
-                    filename,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxWidth: MediaQuery.of(context).size.width * 0.85,
+          ),
+          child: isNetworkImage
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: fileUrl,
+                      fit: BoxFit.contain,
+                      placeholder: (context, url) => Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryGreen,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.broken_image_outlined, size: 40, color: Colors.grey),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Unable to load image preview',
+                              style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Attached successfully to application draft.',
-                    style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+                )
+              : Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
-            ),
-          ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.insert_drive_file, size: 48, color: AppColors.primaryGreen),
+                      const SizedBox(height: 8),
+                      Text(
+                        displayFilename,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Attached successfully to application draft.',
+                        style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: Text('Close', style: GoogleFonts.inter(color: AppColors.primaryGreen, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -1911,7 +1989,9 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      filename,
+                      (filename.contains('/') && filename.split('/').last.isNotEmpty)
+                          ? filename.split('/').last
+                          : filename,
                       style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2352,9 +2432,13 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('APPLICATION REFERENCE', style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                            Text(
-                              _successData!['referenceId']!,
-                              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryGreen),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                _successData!['referenceId']!,
+                                textAlign: TextAlign.right,
+                                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryGreen),
+                              ),
                             ),
                           ],
                         ),
@@ -2399,12 +2483,20 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
 
   Widget _buildSuccessRow(String label, String val) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
-          Text(val, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0F172A))),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              val,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0F172A)),
+            ),
+          ),
         ],
       ),
     );
