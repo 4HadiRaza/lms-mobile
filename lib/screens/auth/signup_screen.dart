@@ -2,10 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:premier_lms/config/api_config.dart';
 import 'package:premier_lms/config/theme.dart';
-import 'package:premier_lms/providers/auth_provider.dart';
 import 'package:premier_lms/services/api_service.dart';
 
 /// Full admission / signup form with 6 sections.
