@@ -25,6 +25,8 @@ android {
             keyPassword = keystoreProperties["keyPassword"] as String?
             storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }
             storePassword = keystoreProperties["storePassword"] as String?
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
@@ -47,6 +49,21 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    // Product flavors allow side-by-side installation of Play Store and test builds
+    flavorDimensions += "environment"
+    productFlavors {
+        create("production") {
+            dimension = "environment"
+            // Uses the base applicationId: com.premiertaxschool.app
+            manifestPlaceholders["appLabel"] = "Premier"
+        }
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            manifestPlaceholders["appLabel"] = "Premier (Dev)"
+        }
     }
 
     buildTypes {

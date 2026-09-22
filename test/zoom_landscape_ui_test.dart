@@ -51,18 +51,23 @@ void main() {
       // 1. In landscape, standard AppBar is not used (replaced by floating overlay)
       expect(find.byType(AppBar), findsNothing);
 
-      // 2. LIVE badge is present in top overlay
-      expect(find.text('LIVE'), findsOneWidget);
+      // 2. Header overlay has title, active class indicator, and red Leave button
       expect(find.text('Taxation Masterclass 2026'), findsOneWidget);
-
-      // 3. Floating Draggable Self-View PIP box is rendered
-      expect(find.text('Self View'), findsOneWidget);
-      expect(find.text('You'), findsOneWidget);
-
-      // 4. Custom toolbar buttons are rendered
-      expect(find.text('Mute'), findsOneWidget);
-      expect(find.text('Stop Video'), findsOneWidget);
+      expect(find.text('Live Classroom · Active'), findsOneWidget);
       expect(find.text('Leave'), findsOneWidget);
+
+      // 3. STRICT REQUIREMENT: NO DUMMY BOX
+      // Verify no dummy Flutter self-view PIP box is rendered (native Zoom PIP handles this)
+      expect(find.text('Self View'), findsNothing);
+      expect(find.text('Camera Off'), findsNothing);
+      expect(find.byKey(const Key('self_view_pip')), findsNothing);
+
+      // 4. Custom toolbar buttons matching reference video are rendered (inverted as explicitly requested by user)
+      expect(find.text('Unmute'), findsOneWidget);
+      expect(find.text('Start video'), findsOneWidget);
+      expect(find.text('Participants'), findsOneWidget);
+      expect(find.text('Chat'), findsOneWidget);
+      expect(find.text('More'), findsOneWidget);
 
       // 5. STRICT FEATURE EXCLUSIONS:
       // Verify NO "Share Screen" button and NO "Zoom AI Companion" button exist
@@ -72,18 +77,6 @@ void main() {
       expect(find.text('AI'), findsNothing);
       expect(find.byIcon(Icons.screen_share), findsNothing);
       expect(find.byIcon(Icons.auto_awesome), findsNothing);
-
-      // 6. Test dragging floating self-view PIP box
-      final selfViewFinder = find.byKey(const Key('self_view_pip'));
-      expect(selfViewFinder, findsOneWidget);
-
-      final initialTopLeft = tester.getTopLeft(selfViewFinder);
-      // Drag PIP box to the left
-      await tester.drag(selfViewFinder, const Offset(-100, -50));
-      await tester.pump();
-
-      final newTopLeft = tester.getTopLeft(selfViewFinder);
-      expect(newTopLeft.dx, isNot(equals(initialTopLeft.dx)));
 
       // 7. Test auto-hide timer (4 seconds of inactivity)
       // Controls should be visible initially (opacity 1.0)
@@ -97,8 +90,11 @@ void main() {
       final animatedOpacity = tester.widget<AnimatedOpacity>(animatedOpacityFinder.first);
       expect(animatedOpacity.opacity, 0.0);
 
-      // 8. Tapping the screen brings controls back
-      await tester.tap(find.byKey(const Key('video_gesture_detector')));
+      // 8. Test Crucial Tap Detection: Full-screen transparent tap detector restores controls
+      final tapDetectorFinder = find.byKey(const Key('video_gesture_detector'));
+      expect(tapDetectorFinder, findsOneWidget);
+
+      await tester.tap(tapDetectorFinder);
       await tester.pump(const Duration(milliseconds: 350));
 
       final restoredOpacity = tester.widget<AnimatedOpacity>(animatedOpacityFinder.first);
