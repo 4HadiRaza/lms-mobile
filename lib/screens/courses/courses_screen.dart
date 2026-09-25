@@ -174,11 +174,16 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16),
                     gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300,
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount:
+                          MediaQuery.of(context).size.width >= 600
+                              ? 3
+                              : (MediaQuery.of(context).size.width >= 360
+                                  ? 2
+                                  : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 265,
+                      mainAxisExtent: 310,
                     ),
                     itemCount: courses.length,
                     itemBuilder: (_, index) {
@@ -205,11 +210,13 @@ class _CoursesScreenState extends State<CoursesScreen> {
   Widget _buildShimmerGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width >= 600
+            ? 3
+            : (MediaQuery.of(context).size.width >= 360 ? 2 : 1),
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        mainAxisExtent: 265,
+        mainAxisExtent: 310,
       ),
       itemCount: 6,
       itemBuilder: (_, __) => const ShimmerCourseCard(),

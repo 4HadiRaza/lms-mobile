@@ -1,3 +1,5 @@
+import 'package:premier_lms/config/api_config.dart';
+
 /// Lesson within a module.
 class Lesson {
   final String id;
@@ -193,8 +195,7 @@ class Course {
       price: coursePrice,
       originalPrice: originalFee,
       discountPercent: discount,
-      thumbnail: json['thumbnail'] ??
-          'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=340&fit=crop',
+      thumbnail: ApiConfig.mediaUrl(json['thumbnail']),
       lessonCount: calculatedLessonCount > 0 ? calculatedLessonCount : 24,
       tags: [
         json['category'] ?? 'Tax',

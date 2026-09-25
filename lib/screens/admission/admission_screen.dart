@@ -830,12 +830,17 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
             children: [
               const Icon(Icons.verified_user, size: 14, color: AppColors.primaryGreen),
               const SizedBox(width: 6),
-              Text(
-                'Official Student Admission & Certification Portal',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF065F46),
+              Flexible(
+                child: Text(
+                  'Official Student Admission & Certification Portal',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF065F46),
+                  ),
                 ),
               ),
             ],
@@ -917,6 +922,9 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
                       const SizedBox(height: 4),
                       Text(
                         s['title'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
@@ -1424,8 +1432,10 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
                 style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF065F46)),
               ),
               const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                spacing: 16,
+                runSpacing: 10,
+                alignment: WrapAlignment.spaceBetween,
                 children: [
                   _buildSummaryItem('Pathway', _applicationType),
                   _buildSummaryItem('Method', _paymentMethod),
@@ -1888,21 +1898,24 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label.toUpperCase(), style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF94A3B8))),
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: fieldKey != null ? const Color(0xFF6EE7B7) : Colors.white,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label.toUpperCase(), style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF94A3B8))),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: fieldKey != null ? const Color(0xFF6EE7B7) : Colors.white,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          if (fieldKey != null)
+          if (fieldKey != null) ...[
+            const SizedBox(width: 8),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: isCopied ? AppColors.primaryGreen : const Color(0xFF1E293B),
@@ -1916,6 +1929,7 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
               label: Text(isCopied ? 'Copied' : 'Copy', style: GoogleFonts.inter(fontSize: 10)),
               onPressed: () => _copyToClipboard(copyValue ?? value, fieldKey),
             ),
+          ],
         ],
       ),
     );
@@ -2222,55 +2236,58 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
   // ── Stepper Controls ──────────────────────────────────────────────────────
   Widget _buildStepperControls() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (_step > 1)
+        if (_step > 1) ...[
           OutlinedButton.icon(
             onPressed: _handlePrevStep,
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF475569),
               side: const BorderSide(color: Color(0xFFCBD5E1)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.arrow_back, size: 16),
             label: Text('Back', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold)),
-          )
-        else
-          const SizedBox.shrink(),
-
+          ),
+          const SizedBox(width: 8),
+        ],
+        const Spacer(),
         if (_step < 5)
           ElevatedButton.icon(
             onPressed: _handleNextStep,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             label: Text('Continue', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold)),
             icon: const Icon(Icons.arrow_forward, size: 16),
           )
         else
-          ElevatedButton.icon(
-            onPressed: _submitting || !_finalConfirmationAgreed ? null : _handleSubmitFinal,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: AppColors.primaryGreen.withValues(alpha: 0.5),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            icon: _submitting
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.lock, size: 16),
-            label: Text(
-              _submitting
-                  ? 'Submitting...'
-                  : (_applicationType == 'Course Enrollment'
-                      ? 'Submit Admission Application'
-                      : 'Submit Assessment Application'),
-              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _submitting || !_finalConfirmationAgreed ? null : _handleSubmitFinal,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.primaryGreen.withValues(alpha: 0.5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: _submitting
+                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.lock, size: 15),
+              label: Text(
+                _submitting
+                    ? 'Submitting...'
+                    : (_applicationType == 'Course Enrollment'
+                        ? 'Submit Admission'
+                        : 'Submit Assessment'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
       ],

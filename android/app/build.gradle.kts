@@ -68,8 +68,12 @@ android {
 
     buildTypes {
         release {
-            // Signing with the release config loaded from key.properties
-            signingConfig = signingConfigs.getByName("release")
+            // Signing with the release config loaded from key.properties, or fallback to debug for test builds
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }

@@ -89,8 +89,14 @@ class ApiConfig {
     if (path == null || path.isEmpty) {
       return 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=340&fit=crop';
     }
-    if (path.startsWith('http')) return path;
-    final cleanPath = path.replaceFirst(RegExp(r'^\.?/'), '');
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+
+    String cleanPath = path.replaceFirst(RegExp(r'^\.?/'), '');
+    if (cleanPath.startsWith('api/uploads/')) {
+      cleanPath = cleanPath.replaceFirst('api/uploads/', '');
+    } else if (cleanPath.startsWith('uploads/')) {
+      cleanPath = cleanPath.replaceFirst('uploads/', '');
+    }
     return '$baseUrl/uploads/$cleanPath';
   }
 }

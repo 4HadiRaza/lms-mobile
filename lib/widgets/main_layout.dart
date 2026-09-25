@@ -52,8 +52,10 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final topColor = _currentIndex == 0 ? AppColors.primaryGreen : Colors.white;
+
     return Container(
-      color: AppColors.primaryGreen, // Matches AppBars
+      color: topColor,
       child: SafeArea(
         top: true,
         bottom: false,

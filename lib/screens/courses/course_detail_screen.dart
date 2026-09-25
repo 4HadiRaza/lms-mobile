@@ -35,7 +35,12 @@ class CourseDetailScreen extends StatelessWidget {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.share_outlined),
-                  onPressed: () => ShareResult,
+                  onPressed: () {
+                    // ignore: deprecated_member_use
+                    Share.share(
+                      'Check out ${course.title} on Premier Academy:\nhttps://www.premiertaxschool.com/courses/${course.slug}',
+                    );
+                  },
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(

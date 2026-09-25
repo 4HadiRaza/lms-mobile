@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
           slivers: [
             // App Bar
             SliverAppBar(
-              expandedHeight: 140,
+              expandedHeight: 155,
               floating: false,
               pinned: true,
               backgroundColor: AppColors.primaryGreen,
@@ -134,39 +134,37 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Consumer<AuthProvider>(
-                builder: (_, auth, __) {
-                  final greeting = auth.isLoggedIn
-                      ? 'Welcome back, ${auth.user?.name.split(' ').first}'
-                      : 'Welcome to Premier Academy';
-                  return Text(
-                    greeting,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                    ),
-                  );
-                },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Consumer<AuthProvider>(
+              builder: (_, auth, __) {
+                final greeting = auth.isLoggedIn
+                    ? 'Welcome back, ${auth.user?.name.split(' ').first}'
+                    : 'Welcome to Premier Academy';
+                return Text(
+                  greeting,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Professional Tax & Accounting Education',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 12,
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Professional Tax & Accounting Education',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -237,11 +235,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300,
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount:
+                          MediaQuery.of(context).size.width >= 600
+                              ? 3
+                              : (MediaQuery.of(context).size.width >= 360
+                                  ? 2
+                                  : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 265,
+                      mainAxisExtent: 310,
                     ),
                     itemCount: 4,
                     itemBuilder: (_, __) => const ShimmerCourseCard(),
@@ -254,11 +257,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300,
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount:
+                          MediaQuery.of(context).size.width >= 600
+                              ? 3
+                              : (MediaQuery.of(context).size.width >= 360
+                                  ? 2
+                                  : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      mainAxisExtent: 265,
+                      mainAxisExtent: 310,
                     ),
                     itemCount: provider.allCourses.length > 4
                         ? 4
@@ -308,8 +316,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300,
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount:
+                          MediaQuery.of(context).size.width >= 600
+                              ? 3
+                              : (MediaQuery.of(context).size.width >= 360
+                                  ? 2
+                                  : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       mainAxisExtent: 220,
