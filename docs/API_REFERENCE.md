@@ -1,28 +1,49 @@
 # API Reference: lms-mobile
 
-*Note: `lms-mobile` is a client application. It does not expose APIs, but consumes the `PREMIER_LMs_backend_` APIs. Below is a reference of the endpoints this app relies on, based on `lib/config/api_config.dart` and the Provider implementations.*
+*Note: `lms-mobile` is a client application. It consumes the `PREMIER_LMs_backend_` APIs. Below is the complete catalog of endpoints utilized by the mobile app based on [`lib/config/api_config.dart`](file:///c:/Users/user/Desktop/Downloads/premier_lms_mobile/lms-mobile/lib/config/api_config.dart) and its Provider services.*
 
-## Authentication (`AuthProvider`)
-- `POST /auth/login`: Submits email/password. Expects JWT token and user object.
-- `POST /auth/register`: Submits user registration details.
-- `GET /auth/profile`: Fetches the current user's profile based on the Bearer token.
-- `POST /auth/change-password`: Updates user password.
+---
 
-## Courses (`CoursesProvider`)
-- `GET /courses/all`: Fetches the complete list of courses for the admission flow.
-- `GET /courses`: Fetches the paginated list of courses the user is enrolled in.
+## 🔐 Authentication (`AuthProvider`)
+* `POST /auth/login`: Authenticates with email and password. Returns JWT access token and user profile. Enforces single-device session locking.
+* `POST /auth/register`: Submits student registration.
+* `GET /auth/profile`: Fetches current user profile and active enrollments.
+* `POST /auth/logout`: Invalidates the device session on the backend.
+* `POST /auth/change-password`: Updates password.
+* `POST /auth/forgot-password`: Requests password reset email.
+* `POST /auth/reset-password`: Completes password reset with verification code.
 
-## Batches & Admissions (`BatchesProvider`)
-- `GET /batches/public`: Fetches active batches available for enrollment.
-- `POST /admissions`: Submits an admission application. Uses `multipart/form-data` to include the `paymentProof` file along with `batchId` and `courseIds`.
+---
 
-## Classes (`ClassesProvider`)
-- `GET /classes/public/upcoming`: Fetches upcoming classes (often used for dashboard widgets).
-- `GET /classes/my/upcoming`: Fetches the current student's scheduled classes that haven't happened yet.
-- `GET /classes/my/past`: Fetches the current student's completed classes.
-- `GET /classes/count/upcoming`: Fetches the total count of upcoming classes for badge notifications.
-- `GET /classes/:id/join`: Fetches Zoom credentials (Meeting ID, Passcode, SDK Key, Signature) required to join a specific class.
+## 📚 Courses (`CoursesProvider`)
+* `GET /courses/all`: Fetches the complete catalog of offered courses for browsing and admission.
+* `GET /courses`: Fetches courses enrolled by the authenticated student.
+* `GET /courses/:id`: Fetches detailed course syllabus, modules, lessons, and reviews.
 
-## Recordings (`RecordingsProvider`)
-- `GET /classes/my/recordings`: Fetches a list of past classes that have video recordings available.
-- `POST /classes/:id/recording-token`: Requests a short-lived, signed token required to playback a specific recording securely.
+---
+
+## 📅 Batches & Admissions (`BatchesProvider`)
+* `GET /batches/public`: Fetches active cohorts open for enrollment.
+* `POST /admissions`: Submits student application with attached personal documents and bank payment receipts.
+
+---
+
+## 🎥 Live Classes & Zoom (`ClassesProvider`)
+* `GET /classes/public/upcoming`: Fetches upcoming classes across the institution.
+* `GET /classes/my/upcoming`: Fetches upcoming lectures specifically for the batches the student is enrolled in.
+* `GET /classes/my/past`: Fetches completed lectures.
+* `GET /classes/count/upcoming`: Badge count of pending live sessions.
+* `POST /classes/:id/join`: Fetches Zoom meeting credentials, user role signature (`HMAC-SHA256`), and permission flags.
+
+---
+
+## 📼 Recorded Lectures (`RecordingsProvider`)
+* `GET /classes/my/recordings`: Fetches archived cloud recordings for the student's courses.
+* `POST /classes/:id/recording-token`: Issues a signed, time-limited token to authorize video streaming.
+* `GET /classes/recording/verify`: Validates playback token for streaming authorization.
+
+---
+
+## 📁 Media & Uploads
+* `POST /uploads`: Uploads user profile photo or admission payment slip.
+* `ApiConfig.mediaUrl(path)`: Dynamically resolves thumbnail URLs against the backend or Cloudinary CDN.
