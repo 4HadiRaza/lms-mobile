@@ -192,53 +192,31 @@ class CourseDetailScreen extends StatelessWidget {
                           ),
                         ],
                       )
-                    : Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (course.originalPrice != null)
-                                  Text(
-                                    'Rs. ${_formatPrice(course.originalPrice!)}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                      decoration: TextDecoration.lineThrough,
-                                    ),
-                                  ),
-                                Text(
-                                  course.isFree
-                                      ? 'FREE'
-                                      : 'Rs. ${_formatPrice(course.price!)}',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: ElevatedButton(
-                                onPressed: () =>
-                                    Navigator.pushNamed(context, '/admission'),
-                                child: const Text(
-                                  'Enroll Now',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgLight,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.borderLight),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.info_outline,
+                                size: 18, color: AppColors.primaryGreen),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Enrollment is managed by Premier Tax School administration.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
               ),
             ),
@@ -577,13 +555,6 @@ class CourseDetailScreen extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _formatPrice(double price) {
-    return price.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
   }
 }
 

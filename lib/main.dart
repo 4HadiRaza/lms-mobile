@@ -15,10 +15,8 @@ import 'package:premier_lms/screens/splash/splash_screen.dart';
 import 'package:premier_lms/widgets/main_layout.dart';
 import 'package:premier_lms/widgets/security_wrapper.dart';
 import 'package:premier_lms/screens/auth/login_screen.dart';
-import 'package:premier_lms/screens/auth/signup_screen.dart';
 import 'package:premier_lms/screens/auth/under_review_screen.dart';
 import 'package:premier_lms/screens/courses/course_detail_screen.dart';
-import 'package:premier_lms/screens/admission/admission_screen.dart';
 import 'package:premier_lms/screens/auth/forgot_password_screen.dart';
 import 'package:premier_lms/screens/auth/reset_password_screen.dart';
 
@@ -71,14 +69,11 @@ class PremierLMSApp extends StatelessWidget {
             case '/login':
               return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/signup':
-              return MaterialPageRoute(
-                  builder: (_) => const SignupScreen());
+            case '/admission':
+              return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/under-review':
               return MaterialPageRoute(
                   builder: (_) => const UnderReviewScreen());
-            case '/admission':
-              return MaterialPageRoute(
-                  builder: (_) => const AdmissionScreen());
             case '/forgot-password':
               return MaterialPageRoute(
                   builder: (_) => const ForgotPasswordScreen());

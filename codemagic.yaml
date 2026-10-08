@@ -28,6 +28,8 @@ workflows:
       - name: Flutter build ipa and sign
         script: |
           flutter build ipa --release \
+            --build-name=1.0.1 \
+            --build-number=5 \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa

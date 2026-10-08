@@ -95,7 +95,7 @@ class UnderReviewScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 12),
                       Text(
-                        'Your admission form has been securely sent to our administrative team. We are currently reviewing your details and payment receipt.\n\nYou will be able to access your courses once your application is approved.',
+                        'Your student account is currently being reviewed by our administrative team.\n\nYou will be able to access your courses and live classes once your enrollment is approved.',
                         style: TextStyle(
                           fontSize: 15,
                           color: AppColors.textSecondary,

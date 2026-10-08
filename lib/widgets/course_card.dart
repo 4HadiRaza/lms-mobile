@@ -253,7 +253,31 @@ class CourseCard extends StatelessWidget {
                       ),
                     )
                   else
-                    _buildPrice(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgLight,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.school_outlined,
+                              size: 13, color: AppColors.primaryGreen),
+                          SizedBox(width: 4),
+                          Text(
+                            'Premier Course',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -261,67 +285,6 @@ class CourseCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildPrice() {
-    if (course.isFree) {
-      return const Text(
-        'FREE',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF16A34A),
-        ),
-      );
-    }
-
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 6,
-      children: [
-        Text(
-          'Rs. ${_formatPrice(course.price!)}',
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        if (course.originalPrice != null)
-          Text(
-            'Rs. ${_formatPrice(course.originalPrice!)}',
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-              decoration: TextDecoration.lineThrough,
-            ),
-          ),
-        if (course.discountPercent != null)
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              '${course.discountPercent}% off',
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF92400E),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  String _formatPrice(double price) {
-    return price.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
   }
 
   Color _badgeColor(String badge) {
