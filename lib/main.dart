@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
 import 'package:premier_lms/models/course.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 // Providers
 import 'package:premier_lms/providers/auth_provider.dart';
@@ -20,8 +21,13 @@ import 'package:premier_lms/screens/courses/course_detail_screen.dart';
 import 'package:premier_lms/screens/auth/forgot_password_screen.dart';
 import 'package:premier_lms/screens/auth/reset_password_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization warning (safe to ignore if not yet configured): $e');
+  }
   runApp(const PremierLMSApp());
 }
 

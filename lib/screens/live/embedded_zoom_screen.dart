@@ -1607,17 +1607,17 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
             ),
             const SizedBox(height: 10),
             _buildInfoRow(
-              _isMuted ? Icons.mic : Icons.mic_off,
+              _isMuted ? Icons.mic_off : Icons.mic,
               'Microphone',
-              _isMuted ? 'Active' : 'Muted',
-              valueColor: _isMuted ? AppColors.primaryGreen : Colors.redAccent,
+              _isMuted ? 'Muted' : 'Active',
+              valueColor: _isMuted ? Colors.redAccent : AppColors.primaryGreen,
             ),
             const SizedBox(height: 10),
             _buildInfoRow(
-              _isVideoOff ? Icons.videocam : Icons.videocam_off,
+              _isVideoOff ? Icons.videocam_off : Icons.videocam,
               'Camera',
-              _isVideoOff ? 'On' : 'Off',
-              valueColor: _isVideoOff ? AppColors.primaryGreen : Colors.redAccent,
+              _isVideoOff ? 'Off' : 'On',
+              valueColor: _isVideoOff ? Colors.redAccent : AppColors.primaryGreen,
             ),
           ],
         ),
@@ -1666,14 +1666,22 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        if (orientation == Orientation.portrait) {
-          return _buildPortraitUI();
-        } else {
-          return _buildLandscapeUI();
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleLeaveClass(context);
         }
       },
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          if (orientation == Orientation.portrait) {
+            return _buildPortraitUI();
+          } else {
+            return _buildLandscapeUI();
+          }
+        },
+      ),
     );
   }
 
@@ -1727,20 +1735,7 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
                 ),
               ),
 
-              // 2. Full-Screen Tap Detector (disabled during pre-join so native touch scrolling is 100% unimpeded)
-              if (!_isPreJoin)
-                Positioned.fill(
-                  child: GestureDetector(
-                    key: const Key('video_gesture_detector'),
-                    behavior: HitTestBehavior.translucent,
-                    onTap: _toggleControls,
-                    child: Container(
-                      color: Colors.transparent,
-                    ),
-                  ),
-                ),
-
-              // 3. Auto-Hiding Floating Controls (Top Header & Bottom Toolbar - hidden during pre-join)
+              // 2. Auto-Hiding Floating Controls (Top Header & Bottom Toolbar - hidden during pre-join)
               if (!_isPreJoin)
                 IgnorePointer(
                   ignoring: !_controlsVisible,
@@ -1749,13 +1744,44 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
                     duration: const Duration(milliseconds: 300),
                     child: Stack(
                       children: [
-                        // Top Bar Overlay
-                        _buildTopOverlay(),
+                        // Top Bar Overlay — tap to toggle controls
+                        GestureDetector(
+                          onTap: _toggleControls,
+                          child: _buildTopOverlay(),
+                        ),
 
-                        // Bottom Floating Pill Toolbar
-                        _buildBottomOverlay(),
+                        // Bottom Floating Pill Toolbar — tap to toggle controls
+                        GestureDetector(
+                          onTap: _toggleControls,
+                          child: _buildBottomOverlay(),
+                        ),
                       ],
                     ),
+                  ),
+                ),
+
+              // 3. When controls are hidden, a transparent tap target to bring them back
+              // positioned at the edges so it doesn't interfere with WebView touches
+              if (!_isPreJoin && !_controlsVisible)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 60,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _toggleControls,
+                  ),
+                ),
+              if (!_isPreJoin && !_controlsVisible)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 60,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _toggleControls,
                   ),
                 ),
             ],
@@ -1988,20 +2014,20 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 1. Mute / Unmute (Inverted)
+              // 1. Mute / Unmute
               _buildToolbarItem(
-                icon: _isMuted ? Icons.mic : Icons.mic_off,
-                label: _isMuted ? 'Mute' : 'Unmute',
-                isAlert: !_isMuted,
+                icon: _isMuted ? Icons.mic_off : Icons.mic,
+                label: _isMuted ? 'Unmute' : 'Mute',
+                isAlert: _isMuted,
                 onTap: _toggleAudio,
               ),
               const SizedBox(width: 14),
 
-              // 2. Stop Video / Start Video (Inverted)
+              // 2. Stop Video / Start Video
               _buildToolbarItem(
-                icon: _isVideoOff ? Icons.videocam : Icons.videocam_off,
-                label: _isVideoOff ? 'Stop video' : 'Start video',
-                isAlert: !_isVideoOff,
+                icon: _isVideoOff ? Icons.videocam_off : Icons.videocam,
+                label: _isVideoOff ? 'Start video' : 'Stop video',
+                isAlert: _isVideoOff,
                 onTap: _toggleVideo,
               ),
               const SizedBox(width: 14),
