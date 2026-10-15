@@ -3,8 +3,11 @@ import 'package:flutter/foundation.dart';
 /// Central API configuration matching the backend endpoints
 /// used by the Next.js frontend.
 class ApiConfig {
-  // Production URL
+  // Production URL (matches live web frontend and WebSockets at premiertaxschool.com)
   static const String _prodUrl = 'https://premier-lms-backend-1.onrender.com/api';
+
+  // Alternative fallback backend URL
+  static const String vercelUrl = 'https://premier-l-ms-backend.vercel.app/api';
 
   // Local Development URLs
   // For Flutter Web and iOS Simulator: http://localhost:3001/api

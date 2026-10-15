@@ -52,22 +52,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      final responseData = e.response?.data;
-      var backendMsg = responseData is Map ? responseData['message'] : null;
-      if (backendMsg is List) backendMsg = backendMsg.join(', ');
-      
-      var detailedErrors = '';
-      if (responseData is Map && responseData['errors'] != null) {
-        if (responseData['errors'] is Map) {
-          final joined = (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
-          detailedErrors = ': $joined';
-        } else if (responseData['errors'] is List) {
-          final joined = (responseData['errors'] as List).join(', ');
-          detailedErrors = ': $joined';
-        }
-      }
-      
-      _error = '${backendMsg?.toString() ?? 'Invalid email or password.'}$detailedErrors';
+      _error = _parseDioError(e, fallback: 'Invalid email or password.');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -90,22 +75,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      final responseData = e.response?.data;
-      var backendMsg = responseData is Map ? responseData['message'] : null;
-      if (backendMsg is List) backendMsg = backendMsg.join(', ');
-      
-      var detailedErrors = '';
-      if (responseData is Map && responseData['errors'] != null) {
-        if (responseData['errors'] is Map) {
-          final joined = (responseData['errors'] as Map).values.map((v) => v is List ? v.join(', ') : v).join(' | ');
-          detailedErrors = ': $joined';
-        } else if (responseData['errors'] is List) {
-          final joined = (responseData['errors'] as List).join(', ');
-          detailedErrors = ': $joined';
-        }
-      }
-      
-      _error = '${backendMsg?.toString() ?? 'Network error'}$detailedErrors';
+      _error = _parseDioError(e, fallback: 'Signup failed. Please try again.');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -115,6 +85,50 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  String _parseDioError(DioException e, {required String fallback}) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return 'Connection timed out. Please check your internet connection and try again.';
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return 'Unable to reach server. Please check your internet connection.';
+    }
+
+    final responseData = e.response?.data;
+    var backendMsg = responseData is Map ? responseData['message'] : null;
+    if (backendMsg is List) backendMsg = backendMsg.join(', ');
+
+    var detailedErrors = '';
+    if (responseData is Map && responseData['errors'] != null) {
+      if (responseData['errors'] is Map) {
+        final joined = (responseData['errors'] as Map)
+            .values
+            .map((v) => v is List ? v.join(', ') : v)
+            .join(' | ');
+        detailedErrors = ': $joined';
+      } else if (responseData['errors'] is List) {
+        final joined = (responseData['errors'] as List).join(', ');
+        detailedErrors = ': $joined';
+      }
+    }
+
+    if (backendMsg != null && backendMsg.toString().isNotEmpty) {
+      return '$backendMsg$detailedErrors';
+    }
+
+    final statusCode = e.response?.statusCode;
+    if (statusCode == 401) {
+      return 'Invalid email or password.';
+    } else if (statusCode == 403) {
+      return 'Account access restricted. Please contact support.';
+    } else if (statusCode != null && statusCode >= 500) {
+      return 'Server error ($statusCode). Please try again shortly.';
+    }
+
+    return fallback;
   }
 
   Future<void> logout() async {
