@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -29,18 +32,31 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
 
+  bool get _isIosStudentPortalOnly => !kIsWeb && Platform.isIOS;
+
+  List<Widget> get _screens {
+    if (_isIosStudentPortalOnly) {
+      return const [
+        HomeScreen(),
+        LiveClassesScreen(),
+        RecordingsScreen(),
+        ProfileScreen(),
+      ];
+    }
+
+    return const [
+      HomeScreen(),
+      CoursesScreen(),
+      LiveClassesScreen(),
+      RecordingsScreen(),
+      ProfileScreen(),
+    ];
+  }
+
   void setTab(int index) {
     setState(() => _currentIndex = index);
     _onTabChanged(index);
   }
-
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    CoursesScreen(),
-    LiveClassesScreen(),
-    RecordingsScreen(),
-    ProfileScreen(),
-  ];
 
   @override
   void didChangeDependencies() {
@@ -68,6 +84,11 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final screens = _screens;
+    if (_currentIndex >= screens.length) {
+      _currentIndex = screens.length - 1;
+    }
+
     final topColor = _currentIndex == 0 ? AppColors.primaryGreen : Colors.white;
 
     return Container(
@@ -102,39 +123,62 @@ class _MainLayoutState extends State<MainLayout> {
                     color: AppColors.textSecondary,
                   ),
                   indicatorColor: AppColors.primaryGreen.withValues(alpha: 0.15),
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.search_outlined),
-                      selectedIcon: Icon(Icons.search),
-                      label: Text('Courses'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.videocam_outlined),
-                      selectedIcon: Icon(Icons.videocam),
-                      label: Text('Live'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.play_circle_outline),
-                      selectedIcon: Icon(Icons.play_circle),
-                      label: Text('Recordings'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person_outline),
-                      selectedIcon: Icon(Icons.person),
-                      label: Text('Profile'),
-                    ),
-                  ],
+                  destinations: _isIosStudentPortalOnly
+                      ? const [
+                          NavigationRailDestination(
+                            icon: Icon(Icons.home_outlined),
+                            selectedIcon: Icon(Icons.home),
+                            label: Text('Home'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.videocam_outlined),
+                            selectedIcon: Icon(Icons.videocam),
+                            label: Text('Live'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.play_circle_outline),
+                            selectedIcon: Icon(Icons.play_circle),
+                            label: Text('Recordings'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.person_outline),
+                            selectedIcon: Icon(Icons.person),
+                            label: Text('Profile'),
+                          ),
+                        ]
+                      : const [
+                          NavigationRailDestination(
+                            icon: Icon(Icons.home_outlined),
+                            selectedIcon: Icon(Icons.home),
+                            label: Text('Home'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.search_outlined),
+                            selectedIcon: Icon(Icons.search),
+                            label: Text('Courses'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.videocam_outlined),
+                            selectedIcon: Icon(Icons.videocam),
+                            label: Text('Live'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.play_circle_outline),
+                            selectedIcon: Icon(Icons.play_circle),
+                            label: Text('Recordings'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.person_outline),
+                            selectedIcon: Icon(Icons.person),
+                            label: Text('Profile'),
+                          ),
+                        ],
                 ),
                 const VerticalDivider(thickness: 1, width: 1),
                 Expanded(
                   child: IndexedStack(
                     index: _currentIndex,
-                    children: _screens,
+                    children: screens,
                   ),
                 ),
               ],
@@ -144,7 +188,7 @@ class _MainLayoutState extends State<MainLayout> {
           // Mobile layout with BottomNavigationBar
           return IndexedStack(
             index: _currentIndex,
-            children: _screens,
+            children: screens,
           );
         },
       ),
@@ -176,37 +220,63 @@ class _MainLayoutState extends State<MainLayout> {
                 },
                 backgroundColor: Colors.white,
                 indicatorColor: AppColors.primaryGreen.withValues(alpha: 0.15),
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home, color: AppColors.primaryGreen),
-                    label: 'Home',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.search_outlined),
-                    selectedIcon:
-                        Icon(Icons.search, color: AppColors.primaryGreen),
-                    label: 'Courses',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.videocam_outlined),
-                    selectedIcon:
-                        Icon(Icons.videocam, color: AppColors.primaryGreen),
-                    label: 'Live',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.play_circle_outline),
-                    selectedIcon:
-                        Icon(Icons.play_circle, color: AppColors.primaryGreen),
-                    label: 'Recordings',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.person_outline),
-                    selectedIcon:
-                        Icon(Icons.person, color: AppColors.primaryGreen),
-                    label: 'Profile',
-                  ),
-                ],
+                destinations: _isIosStudentPortalOnly
+                    ? const [
+                        NavigationDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home, color: AppColors.primaryGreen),
+                          label: 'Home',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.videocam_outlined),
+                          selectedIcon:
+                              Icon(Icons.videocam, color: AppColors.primaryGreen),
+                          label: 'Live',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.play_circle_outline),
+                          selectedIcon:
+                              Icon(Icons.play_circle, color: AppColors.primaryGreen),
+                          label: 'Recordings',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon:
+                              Icon(Icons.person, color: AppColors.primaryGreen),
+                          label: 'Profile',
+                        ),
+                      ]
+                    : const [
+                        NavigationDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home, color: AppColors.primaryGreen),
+                          label: 'Home',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.search_outlined),
+                          selectedIcon:
+                              Icon(Icons.search, color: AppColors.primaryGreen),
+                          label: 'Courses',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.videocam_outlined),
+                          selectedIcon:
+                              Icon(Icons.videocam, color: AppColors.primaryGreen),
+                          label: 'Live',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.play_circle_outline),
+                          selectedIcon:
+                              Icon(Icons.play_circle, color: AppColors.primaryGreen),
+                          label: 'Recordings',
+                        ),
+                        NavigationDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon:
+                              Icon(Icons.person, color: AppColors.primaryGreen),
+                          label: 'Profile',
+                        ),
+                      ],
               ),
             ))
           : null,

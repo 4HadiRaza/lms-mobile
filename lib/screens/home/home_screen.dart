@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -215,6 +218,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCoursesSection() {
+    final bool isIosStudentPortalOnly = !kIsWeb && Platform.isIOS;
+    if (isIosStudentPortalOnly) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, color: AppColors.primaryGreen, size: 18),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'To enroll in new courses, please visit our website.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Consumer<CoursesProvider>(
       builder: (_, provider, __) {
         return SliverToBoxAdapter(

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
@@ -16,11 +19,46 @@ class CourseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final bool isIosStudentPortalOnly = !kIsWeb && Platform.isIOS;
     final isEnrolled = auth.isLoggedIn &&
         auth.user != null &&
         auth.user!.isCourseEnrolled(course.title);
     final userBatch = auth.user?.getBatchNameForCourse(course.title);
     final displayBatch = userBatch ?? course.batchName;
+
+    if (isIosStudentPortalOnly && !isEnrolled) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Course Access'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  size: 40,
+                  color: AppColors.primaryGreen,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'To enroll in new courses, please visit our website.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       body: DefaultTabController(
