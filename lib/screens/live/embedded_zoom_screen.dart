@@ -52,6 +52,7 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
   final ScrollController _chatScrollController = ScrollController();
   final ValueNotifier<int> _chatUpdateNotifier = ValueNotifier<int>(0);
   StateSetter? _chatModalSetState;
+  DateTime? _lastChatReceived; // Used for time-windowed dedup of incoming messages
 
   // Dynamic attendees state from Zoom SDK
   final List<Map<String, dynamic>> _attendees = [];
@@ -894,22 +895,129 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
             });
           } catch(e) {}
 
-          try {
-            zm.inMeetingServiceListener('onChatReceived', function(data) {
-              if (!data) return;
-              var sender = data.sender || data.senderName || 'Instructor';
-              if (typeof sender === 'object' && sender.name) sender = sender.name;
-              var message = data.message || data.content || '';
-              if (message) {
-                postToFlutter({
-                  type: 'chatReceived',
-                  sender: sender,
-                  message: message,
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          // ─── CHAT MESSAGE INTERCEPTION (3-Layer Fallback) ───────────────────────
+          // The Zoom Client View SDK does NOT support inMeetingServiceListener('onChatReceived').
+          // That event name is invalid and silently does nothing.
+          // We use three strategies layered together for maximum compatibility.
+
+          // Layer 1: MutationObserver on Zoom's chat DOM
+          // Watches for new chat message nodes being inserted BEFORE our CSS hides them.
+          // This fires synchronously on DOM mutation, so we capture the text before display:none.
+          if (!window.__premierChatObserver) {
+            var chatObserver = new MutationObserver(function(mutations) {
+              mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                  if (node.nodeType !== 1) return;
+                  // Zoom renders chat messages in elements with class names like
+                  // chat-message__text, chat-item, chat-message-item, etc.
+                  var msgEl = null;
+                  var senderEl = null;
+                  // Try known Zoom chat class patterns
+                  var msgCandidates = [
+                    node.querySelector('[class*="chat-message__text"]'),
+                    node.querySelector('[class*="chat-item__text"]'),
+                    node.querySelector('[class*="chat-message-item"] [class*="text"]'),
+                    node.querySelector('[class*="chat-message"] [class*="content"]'),
+                    node.querySelector('[class*="message-content"]'),
+                    node.querySelector('[class*="message__text"]'),
+                    node.querySelector('[class*="chat__text"]'),
+                    node.querySelector('.chat-message__text'),
+                    node.querySelector('.chat-item__text')
+                  ];
+                  var senderCandidates = [
+                    node.querySelector('[class*="chat-message__sender"]'),
+                    node.querySelector('[class*="sender-name"]'),
+                    node.querySelector('[class*="chat-item__sender"]'),
+                    node.querySelector('[class*="participant-name"]'),
+                    node.querySelector('[class*="user-name"]'),
+                    node.querySelector('.sender'),
+                    node.querySelector('[class*="sender"]')
+                  ];
+
+                  for (var i = 0; i < msgCandidates.length; i++) {
+                    if (msgCandidates[i]) { msgEl = msgCandidates[i]; break; }
+                  }
+                  for (var j = 0; j < senderCandidates.length; j++) {
+                    if (senderCandidates[j]) { senderEl = senderCandidates[j]; break; }
+                  }
+
+                  // Also check if the node itself is a chat message
+                  if (!msgEl) {
+                    var cls = (node.className || '').toString().toLowerCase();
+                    if (cls.indexOf('chat') !== -1 && (cls.indexOf('message') !== -1 || cls.indexOf('item') !== -1)) {
+                      var text = (node.innerText || node.textContent || '').trim();
+                      if (text.length > 0 && text.length < 2000) {
+                        msgEl = node;
+                      }
+                    }
+                  }
+
+                  if (!msgEl) return;
+
+                  var messageText = (msgEl.innerText || msgEl.textContent || '').trim();
+                  var senderText = senderEl ? (senderEl.innerText || senderEl.textContent || '').trim() : 'Participant';
+                  if (senderText.slice(-1) === ':') senderText = senderText.slice(0, -1).trim();
+
+                  if (!messageText || messageText.length === 0 || messageText.length > 2000) return;
+
+                  var msgKey = senderText + '|' + messageText;
+                  if (window.__premierChatSent && window.__premierChatSent[msgKey]) return;
+                  if (!window.__premierChatSent) window.__premierChatSent = {};
+                  window.__premierChatSent[msgKey] = true;
+
+                  // Clean up old keys after 30s to prevent memory leak
+                  setTimeout(function() {
+                    if (window.__premierChatSent) delete window.__premierChatSent[msgKey];
+                  }, 30000);
+
+                  postToFlutter({
+                    type: 'chatReceived',
+                    sender: senderText,
+                    message: messageText,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  });
                 });
-              }
+              });
             });
+
+            // Observe the entire document for chat nodes — Zoom mounts chat dynamically
+            chatObserver.observe(document.body || document.documentElement, {
+              childList: true,
+              subtree: true
+            });
+            window.__premierChatObserver = chatObserver;
+          }
+
+          // Layer 2: Hook Zoom SDK's internal receiveChatMessage / onReceiveChatMsgEvent
+          // Some Zoom SDK versions expose these on the ZoomMtg object or on window.__zm_eventbus
+          try {
+            var zm2 = window.ZoomMtg || (window.ZoomMtgLib && window.ZoomMtgLib.ZoomMtg);
+            if (zm2) {
+              var chatHookTargets = ['receiveChatMessage', 'onReceiveChatMsg', 'onChatMessage'];
+              chatHookTargets.forEach(function(fnName) {
+                if (zm2[fnName] && !zm2[fnName].__premierHooked) {
+                  var orig = zm2[fnName];
+                  zm2[fnName] = function(data) {
+                    try {
+                      if (data) {
+                        var s = data.senderName || data.sender || 'Participant';
+                        if (typeof s === 'object' && s.name) s = s.name;
+                        var m = data.message || data.content || data.chatContent || '';
+                        if (m) {
+                          postToFlutter({ type: 'chatReceived', sender: s, message: m,
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                        }
+                      }
+                    } catch(ex) {}
+                    return orig.apply(this, arguments);
+                  };
+                  zm2[fnName].__premierHooked = true;
+                }
+              });
+            }
           } catch(e) {}
+
+
 
           try {
             zm.inMeetingServiceListener('onUserJoin', function(data) {
@@ -1025,25 +1133,46 @@ class _EmbeddedZoomScreenState extends State<EmbeddedZoomScreen> {
           break;
         case 'chatReceived':
           if (mounted) {
-            final String sender = data['sender']?.toString() ?? 'Instructor';
+            final String sender = data['sender']?.toString() ?? 'Participant';
             final String msgText = data['message']?.toString() ?? '';
             final String timeStr = data['timestamp']?.toString() ?? '';
 
-            final isDuplicate = _chatMessages.any(
-              (m) => m['message'] == msgText && m['sender'] == sender,
-            );
-            if (!isDuplicate && msgText.isNotEmpty) {
-              setState(() {
-                _chatMessages.add({
-                  'sender': sender,
-                  'message': msgText,
-                  'timestamp': timeStr,
-                  'isMe': 'false',
+            if (msgText.isNotEmpty) {
+              // Time-windowed dedup: only suppress if the EXACT same sender+message
+              // arrived within the last 2 seconds (handles multi-layer JS firing).
+              // This still allows the same message to be sent twice legitimately.
+              final now = DateTime.now();
+              final isDuplicate = _chatMessages.isNotEmpty &&
+                  _chatMessages.last['message'] == msgText &&
+                  _chatMessages.last['sender'] == sender &&
+                  _chatMessages.last['isMe'] == 'false' &&
+                  _lastChatReceived != null &&
+                  now.difference(_lastChatReceived!).inSeconds < 2;
+
+              if (!isDuplicate) {
+                _lastChatReceived = now;
+                setState(() {
+                  _chatMessages.add({
+                    'sender': sender,
+                    'message': msgText,
+                    'timestamp': timeStr,
+                    'isMe': 'false',
+                  });
+                  _unreadChatCount++;
                 });
-                _unreadChatCount++;
-              });
-              _chatUpdateNotifier.value++;
-              _chatModalSetState?.call(() {});
+                _chatUpdateNotifier.value++;
+                _chatModalSetState?.call(() {});
+                // Scroll chat to bottom if open
+                Future.delayed(const Duration(milliseconds: 80), () {
+                  if (_chatScrollController.hasClients) {
+                    _chatScrollController.animateTo(
+                      _chatScrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                });
+              }
             }
           }
           break;

@@ -11,6 +11,9 @@ class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
 
+  /// Named singleton accessor — equivalent to ApiService() but more explicit.
+  static ApiService get instance => _instance;
+
   late final Dio dio;
   String? _cachedToken;
 

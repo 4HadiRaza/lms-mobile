@@ -79,13 +79,22 @@ class _SecurityWrapperState extends State<SecurityWrapper> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !kIsWeb) {
-      // Re-verify screen recording status on app resume
-      ScreenProtector.isRecording().then((isRecording) {
-        if (mounted && isRecording != _isRecording) {
-          setState(() => _isRecording = isRecording);
-        }
-      }).catchError((_) {});
+    if (state == AppLifecycleState.resumed) {
+      if (!kIsWeb) {
+        // Re-verify screen recording status on app resume
+        ScreenProtector.isRecording().then((isRecording) {
+          if (mounted && isRecording != _isRecording) {
+            setState(() => _isRecording = isRecording);
+          }
+        }).catchError((_) {});
+      }
+
+      // Silently re-validate the session token against the server.
+      // If the token was revoked (web login, admin deactivation, etc.),
+      // AuthProvider will clear the user and trigger a re-route to login.
+      if (mounted) {
+        context.read<AuthProvider>().revalidateSession();
+      }
     }
   }
 

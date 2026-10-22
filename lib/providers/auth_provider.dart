@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:premier_lms/models/user.dart';
@@ -10,7 +11,13 @@ class AuthProvider extends ChangeNotifier {
 
   User? _user;
   bool _isLoading = true;
+  bool _isRevalidating = false;
   String? _error;
+
+  /// Completes once the initial session restore attempt finishes.
+  /// Await this before making routing decisions.
+  final Completer<void> _sessionRestoreCompleter = Completer<void>();
+  Future<void> get sessionRestored => _sessionRestoreCompleter.future;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
@@ -18,9 +25,12 @@ class AuthProvider extends ChangeNotifier {
   bool get isAdmin => _user?.isAdmin ?? false;
   String? get error => _error;
 
+  /// Whether a background re-validation is in progress (used for UI feedback).
+  bool get isRevalidating => _isRevalidating;
+
   AuthProvider() {
-    // Wire up session expiry callback
-    ApiService().onSessionExpired = () {
+    // Wire up session expiry callback on the singleton instance
+    ApiService.instance.onSessionExpired = () {
       _user = null;
       notifyListeners();
     };
@@ -38,7 +48,40 @@ class AuthProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
+    // Signal that the initial restore is done so the splash screen can route.
+    if (!_sessionRestoreCompleter.isCompleted) {
+      _sessionRestoreCompleter.complete();
+    }
     notifyListeners();
+  }
+
+  /// Silently re-validates the stored token against the server.
+  /// Called on app resume. Does NOT show a loading indicator to the user.
+  /// If the token is invalid/expired, logs out and routes to login.
+  Future<void> revalidateSession() async {
+    if (_isRevalidating || _isLoading) return;
+    if (_user == null) return; // Already logged out, nothing to revalidate.
+
+    _isRevalidating = true;
+    // No notifyListeners() here — we don't want to flash a spinner on resume.
+
+    try {
+      final freshUser = await _authService.restoreSession();
+      if (freshUser == null) {
+        // Token rejected by server — clear local state.
+        _user = null;
+        notifyListeners();
+      } else {
+        // Update user in case profile changed while away.
+        _user = freshUser;
+        notifyListeners();
+      }
+    } catch (_) {
+      // Network unavailable — don't log out, let the user keep their session.
+      // They'll get an error when they try to do something that needs the network.
+    } finally {
+      _isRevalidating = false;
+    }
   }
 
   Future<bool> login(String email, String password) async {

@@ -73,6 +73,11 @@ class _SplashScreenState extends State<SplashScreen>
       final batches = context.read<BatchesProvider>();
       final recordings = context.read<RecordingsProvider>();
 
+      // Wait for the session restore to complete before we decide what to prefetch.
+      // Without this, auth.isLoggedIn is always false at this point because
+      // AuthProvider._restoreSession() is still running asynchronously.
+      await auth.sessionRestored;
+
       // Load core public data in the background
       final prefetchTasks = <Future>[
         courses.loadCourses().catchError((e) {

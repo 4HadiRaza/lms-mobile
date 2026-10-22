@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
+import 'package:premier_lms/providers/auth_provider.dart';
 import 'package:premier_lms/providers/classes_provider.dart';
 import 'package:premier_lms/providers/recordings_provider.dart';
 import 'package:premier_lms/screens/home/home_screen.dart';
@@ -40,6 +41,21 @@ class _MainLayoutState extends State<MainLayout> {
     RecordingsScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // If the session was invalidated while this screen is active (e.g.,
+    // revalidateSession() found the token revoked), redirect to login.
+    final auth = context.watch<AuthProvider>();
+    if (!auth.isLoading && !auth.isLoggedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+        }
+      });
+    }
+  }
 
   void _onTabChanged(int index) {
     if (!mounted) return;
