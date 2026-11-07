@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -60,9 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               floating: false,
               pinned: true,
               backgroundColor: AppColors.primaryGreen,
-              flexibleSpace: FlexibleSpaceBar(
-                background: _buildWelcomeCard(),
-              ),
+              flexibleSpace: FlexibleSpaceBar(background: _buildWelcomeCard()),
               title: const Text(
                 'Premier Academy',
                 style: TextStyle(
@@ -77,8 +72,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? IconButton(
                           icon: CircleAvatar(
                             radius: 14,
-                            backgroundColor:
-                                AppColors.accentGold.withValues(alpha: 0.2),
+                            backgroundColor: AppColors.accentGold.withValues(
+                              alpha: 0.2,
+                            ),
                             child: Text(
                               auth.user?.initials ?? 'U',
                               style: const TextStyle(
@@ -195,13 +191,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: provider.isLoading
                     ? const Center(
                         child: CircularProgressIndicator(
-                            color: AppColors.primaryGreen))
+                          color: AppColors.primaryGreen,
+                        ),
+                      )
                     : ListView.separated(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: provider.publicUpcoming.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(width: 12),
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
                         itemBuilder: (_, index) {
                           return LiveClassCard(
                             liveClass: provider.publicUpcoming[index],
@@ -218,42 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCoursesSection() {
-    final bool isIosStudentPortalOnly = !kIsWeb && Platform.isIOS;
-    if (isIosStudentPortalOnly) {
-      return SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline, color: AppColors.primaryGreen, size: 18),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'To enroll in new courses, please visit our website.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Consumer<CoursesProvider>(
       builder: (_, provider, __) {
         return SliverToBoxAdapter(
@@ -273,14 +234,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width >= 600
-                              ? 3
-                              : (MediaQuery.of(context).size.width >= 360
-                                  ? 2
-                                  : 1),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width >= 600
+                          ? 3
+                          : (MediaQuery.of(context).size.width >= 360 ? 2 : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       mainAxisExtent: 310,
@@ -295,14 +252,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width >= 600
-                              ? 3
-                              : (MediaQuery.of(context).size.width >= 360
-                                  ? 2
-                                  : 1),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width >= 600
+                          ? 3
+                          : (MediaQuery.of(context).size.width >= 360 ? 2 : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       mainAxisExtent: 310,
@@ -346,31 +299,27 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
               if (provider.isLoading)
                 const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.primaryGreen))
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryGreen,
+                  ),
+                )
               else
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width >= 600
-                              ? 3
-                              : (MediaQuery.of(context).size.width >= 360
-                                  ? 2
-                                  : 1),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width >= 600
+                          ? 3
+                          : (MediaQuery.of(context).size.width >= 360 ? 2 : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       mainAxisExtent: 220,
                     ),
                     itemCount: provider.upcomingBatches.length,
                     itemBuilder: (_, index) {
-                      return BatchCard(
-                        batch: provider.upcomingBatches[index],
-                      );
+                      return BatchCard(batch: provider.upcomingBatches[index]);
                     },
                   ),
                 ),

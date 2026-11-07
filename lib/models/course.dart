@@ -43,7 +43,8 @@ class Module {
     return Module(
       id: json['id']?.toString() ?? '',
       title: json['title'] ?? '',
-      lessons: (json['lessons'] as List<dynamic>?)
+      lessons:
+          (json['lessons'] as List<dynamic>?)
               ?.map((l) => Lesson.fromJson(l as Map<String, dynamic>))
               .toList() ??
           [],
@@ -76,6 +77,7 @@ class Course {
   final int lessonCount;
   final List<String> tags;
   final String? badge;
+  final String? appleProductId;
   final String? batchName;
   final List<String> batchNames;
   final String lastUpdated;
@@ -107,6 +109,7 @@ class Course {
     this.lessonCount = 0,
     this.tags = const [],
     this.badge,
+    this.appleProductId,
     this.batchName,
     this.batchNames = const [],
     this.lastUpdated = '',
@@ -124,9 +127,12 @@ class Course {
     final calculatedRating = reviewsCount > 0
         ? double.parse(
             (reviewsList.fold<double>(
-                        0, (sum, r) => sum + ((r['rating'] as num?) ?? 0)) /
+                      0,
+                      (sum, r) => sum + ((r['rating'] as num?) ?? 0),
+                    ) /
                     reviewsCount)
-                .toStringAsFixed(1))
+                .toStringAsFixed(1),
+          )
         : 4.8;
 
     final modulesList = json['modules'] as List<dynamic>? ?? [];
@@ -145,8 +151,7 @@ class Course {
     if (originalFee != null &&
         discountedFee != null &&
         originalFee > discountedFee) {
-      discount =
-          ((originalFee - discountedFee) / originalFee * 100).round();
+      discount = ((originalFee - discountedFee) / originalFee * 100).round();
     }
 
     final name = json['name'] ?? '';
@@ -177,9 +182,11 @@ class Course {
       id: json['id']?.toString() ?? '',
       slug: name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
       title: name,
-      description: json['description'] ??
+      description:
+          json['description'] ??
           'Learn professional practices in tax & accounting.',
-      longDescription: json['longDescription'] ??
+      longDescription:
+          json['longDescription'] ??
           'This course provides complete, practical training.',
       instructor: json['instructorName'] ?? 'Premier Academy Faculty',
       instructorId: json['instructorId']?.toString() ?? '',
@@ -197,23 +204,23 @@ class Course {
       discountPercent: discount,
       thumbnail: ApiConfig.mediaUrl(json['thumbnail']),
       lessonCount: calculatedLessonCount > 0 ? calculatedLessonCount : 24,
-      tags: [
-        json['category'] ?? 'Tax',
-        json['level'] ?? 'Intermediate',
-      ],
+      tags: [json['category'] ?? 'Tax', json['level'] ?? 'Intermediate'],
       badge: json['badge'],
+      appleProductId: json['appleProductId']?.toString(),
       batchName: extractedBatchName,
       batchNames: extractedBatchNames,
       lastUpdated: json['lastUpdated'] ?? 'June 2026',
       language: json['language'] ?? 'English & Urdu',
-      whatYouWillLearn: (json['whatYouWillLearn'] as List<dynamic>?)
+      whatYouWillLearn:
+          (json['whatYouWillLearn'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [
             'Understand core concepts and frameworks',
             'Apply knowledge to real-world scenarios',
           ],
-      requirements: (json['requirements'] as List<dynamic>?)
+      requirements:
+          (json['requirements'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           ['Basic understanding of accounting principles'],
@@ -223,9 +230,42 @@ class Course {
     );
   }
 
+  factory Course.fromJson(Map<String, dynamic> json) =>
+      Course.fromApiJson(json);
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'slug': slug,
+    'title': title,
+    'description': description,
+    'longDescription': longDescription,
+    'instructor': instructor,
+    'instructorId': instructorId,
+    'category': category,
+    'level': level,
+    'duration': duration,
+    'rating': rating,
+    'reviewCount': reviewCount,
+    'enrollmentCount': enrollmentCount,
+    'price': price,
+    'originalPrice': originalPrice,
+    'discountPercent': discountPercent,
+    'thumbnail': thumbnail,
+    'lessonCount': lessonCount,
+    'tags': tags,
+    'badge': badge,
+    'appleProductId': appleProductId,
+    'batchName': batchName,
+    'batchNames': batchNames,
+    'lastUpdated': lastUpdated,
+    'language': language,
+    'whatYouWillLearn': whatYouWillLearn,
+    'requirements': requirements,
+    'reviews': reviews,
+  };
+
   bool get isFree => price == null;
-  int get totalLessons =>
-      modules.fold(0, (sum, m) => sum + m.lessonCount);
+  int get totalLessons => modules.fold(0, (sum, m) => sum + m.lessonCount);
 }
 
 /// Instructor info for course detail page.
@@ -252,15 +292,18 @@ class Instructor {
   factory Instructor.fromApiJson(Map<String, dynamic> courseJson) {
     return Instructor(
       name: courseJson['instructorName'] ?? 'Premier Academy Faculty',
-      title: courseJson['instructorTitle'] ??
+      title:
+          courseJson['instructorTitle'] ??
           'Senior Tax Consultants & Practitioners',
       rating: 4.9,
       coursesCount: 8,
       studentsCount: 1200,
-      bio: courseJson['instructorBio'] ??
+      bio:
+          courseJson['instructorBio'] ??
           'Our faculty consists of leading tax consultants, legal experts, '
               'and chartered accountants in Pakistan with decades of experience.',
-      image: courseJson['instructorImage'] ??
+      image:
+          courseJson['instructorImage'] ??
           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
     );
   }

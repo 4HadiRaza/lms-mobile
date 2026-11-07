@@ -1,8 +1,11 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
 import 'package:premier_lms/providers/auth_provider.dart';
+import 'package:premier_lms/providers/iap_provider.dart';
 import 'package:premier_lms/widgets/empty_state.dart';
 
 /// Profile screen — user info, change password, about, logout.
@@ -44,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final user = auth.user!;
+    final bool isIOS = !kIsWeb && Platform.isIOS;
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -312,6 +316,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
+          if (isIOS) ...[
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.restore, size: 20, color: AppColors.primaryGreen),
+                title: const Text(
+                  'Restore Purchases',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text(
+                  'Restore previously purchased courses from your Apple ID',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () async {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Restore request sent to App Store...'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  await context.read<IapProvider>().restorePurchases();
+                  if (context.mounted) {
+                    await context.read<AuthProvider>().revalidateSession();
+                  }
+                },
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
 
           // About
@@ -325,15 +364,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.info_outlined, size: 20),
-                  title: const Text('About Premier Academy',
-                      style: TextStyle(fontSize: 14)),
-                  trailing:
-                      const Icon(Icons.chevron_right, size: 20),
-                  onTap: () => _launchUrl('https://www.premiertaxschool.com/about#meet-founder'),
-                ),
-                const Divider(height: 0),
+                if (!isIOS) ...[
+                  ListTile(
+                    leading: const Icon(Icons.info_outlined, size: 20),
+                    title: const Text('About Premier Academy',
+                        style: TextStyle(fontSize: 14)),
+                    trailing:
+                        const Icon(Icons.chevron_right, size: 20),
+                    onTap: () => _launchUrl('https://www.premiertaxschool.com/about#meet-founder'),
+                  ),
+                  const Divider(height: 0),
+                ],
                 ListTile(
                   leading: const Icon(Icons.privacy_tip_outlined, size: 20),
                   title: const Text('Privacy Policy',
@@ -358,7 +399,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(fontSize: 14)),
                   trailing:
                       const Icon(Icons.chevron_right, size: 20),
-                  onTap: () => _launchUrl('https://www.premiertaxschool.com/about#meet-founder'),
+                  onTap: () => _launchUrl(isIOS
+                      ? 'mailto:support@premiertaxschool.com'
+                      : 'https://www.premiertaxschool.com/about#meet-founder'),
                 ),
                 const Divider(height: 0),
                 const ListTile(
@@ -394,6 +437,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+
+          // iOS Apple Guideline 5.1.1(v) Account Deletion (non-admin only)
+          if (isIOS && user.role.toLowerCase() != 'admin') ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () => _confirmDeleteAccount(context),
+                icon: Icon(Icons.delete_forever, size: 18, color: Colors.red.shade700),
+                label: Text(
+                  'Delete Account',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 80),
         ],
@@ -458,6 +524,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.error ?? 'Failed to change password'),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text(
+          'Delete Account Permanently?',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'This will permanently delete your student account, enrollment records, and learning history. This action cannot be undone.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final auth = this.context.read<AuthProvider>();
+    final messenger = ScaffoldMessenger.of(this.context);
+    final nav = Navigator.of(this.context);
+
+    final deleted = await auth.deleteAccount();
+
+    if (!mounted) return;
+
+    if (deleted) {
+      nav.pushNamedAndRemoveUntil('/login', (route) => false);
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Your account has been permanently deleted.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(auth.error ?? 'Failed to delete account.'),
           backgroundColor: Colors.red.shade600,
         ),
       );

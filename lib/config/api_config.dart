@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 /// used by the Next.js frontend.
 class ApiConfig {
   // Production URL (matches live web frontend and WebSockets at premiertaxschool.com)
-  static const String _prodUrl = 'https://premier-lms-backend-1.onrender.com/api';
+  static const String _prodUrl =
+      'https://premier-lms-backend-1.onrender.com/api';
 
   // Alternative fallback backend URL
   static const String vercelUrl = 'https://premier-l-ms-backend.vercel.app/api';
@@ -22,11 +23,11 @@ class ApiConfig {
     if (!kDebugMode || useProdInDebug) {
       return _prodUrl;
     }
-    
+
     if (kIsWeb) {
       return _localUrlWebAndIos;
     }
-    
+
     // In debug mode, automatically detect platform for local testing
     if (defaultTargetPlatform == TargetPlatform.android) {
       return _localUrlAndroid;
@@ -38,21 +39,21 @@ class ApiConfig {
     if (!kDebugMode || useProdInDebug) {
       return 'https://www.premiertaxschool.com';
     }
-    
+
     if (kIsWeb) {
       return 'http://localhost:3000';
     }
-    
+
     if (defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:3000';
     }
     return 'http://localhost:3000';
   }
 
-
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
+  static const String deleteAccount = '/auth/account';
   static const String profile = '/auth/profile';
   static const String logout = '/auth/logout';
   static const String changePassword = '/auth/change-password';
@@ -77,6 +78,9 @@ class ApiConfig {
   /// POST /classes/:id/recording-token
   static String recordingToken(String id) => '/classes/$id/recording-token';
   static const String recordingVerify = '/classes/recording/verify';
+
+  // In-App Purchases
+  static const String verifyAppleIap = '/iap/verify-apple';
 
   // Admissions
   static const String admissions = '/admissions';

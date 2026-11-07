@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -10,12 +12,14 @@ import 'package:premier_lms/providers/courses_provider.dart';
 import 'package:premier_lms/providers/classes_provider.dart';
 import 'package:premier_lms/providers/batches_provider.dart';
 import 'package:premier_lms/providers/recordings_provider.dart';
+import 'package:premier_lms/providers/iap_provider.dart';
 
 // Screens & Layout
 import 'package:premier_lms/screens/splash/splash_screen.dart';
 import 'package:premier_lms/widgets/main_layout.dart';
 import 'package:premier_lms/widgets/security_wrapper.dart';
 import 'package:premier_lms/screens/auth/login_screen.dart';
+import 'package:premier_lms/screens/auth/signup_screen.dart';
 import 'package:premier_lms/screens/auth/under_review_screen.dart';
 import 'package:premier_lms/screens/courses/course_detail_screen.dart';
 import 'package:premier_lms/screens/auth/forgot_password_screen.dart';
@@ -26,7 +30,9 @@ void main() async {
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    debugPrint('Firebase initialization warning (safe to ignore if not yet configured): $e');
+    debugPrint(
+      'Firebase initialization warning (safe to ignore if not yet configured): $e',
+    );
   }
   runApp(const PremierLMSApp());
 }
@@ -43,6 +49,18 @@ class PremierLMSApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ClassesProvider()),
         ChangeNotifierProvider(create: (_) => BatchesProvider()),
         ChangeNotifierProvider(create: (_) => RecordingsProvider()),
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          CoursesProvider,
+          IapProvider
+        >(
+          create: (_) => IapProvider(),
+          update: (_, auth, courses, iap) {
+            iap ??= IapProvider();
+            iap.update(auth, courses);
+            return iap;
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'Premier',
@@ -54,8 +72,7 @@ class PremierLMSApp extends StatelessWidget {
         home: const SplashScreen(),
         onGenerateRoute: (settings) {
           // Handle dynamic routes like /course/:slug
-          if (settings.name != null &&
-              settings.name!.startsWith('/course/')) {
+          if (settings.name != null && settings.name!.startsWith('/course/')) {
             final course = settings.arguments as Course?;
             if (course != null) {
               return MaterialPageRoute(
@@ -75,18 +92,25 @@ class PremierLMSApp extends StatelessWidget {
             case '/login':
               return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/signup':
+              if (!kIsWeb && Platform.isIOS) {
+                return MaterialPageRoute(builder: (_) => const SignupScreen());
+              }
+              return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/admission':
               return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/under-review':
               return MaterialPageRoute(
-                  builder: (_) => const UnderReviewScreen());
+                builder: (_) => const UnderReviewScreen(),
+              );
             case '/forgot-password':
               return MaterialPageRoute(
-                  builder: (_) => const ForgotPasswordScreen());
+                builder: (_) => const ForgotPasswordScreen(),
+              );
             case '/reset-password':
               final token = settings.arguments as String? ?? '';
               return MaterialPageRoute(
-                  builder: (_) => ResetPasswordScreen(token: token));
+                builder: (_) => ResetPasswordScreen(token: token),
+              );
             default:
               return null; // Let home handle '/' or unknown routes fallback
           }

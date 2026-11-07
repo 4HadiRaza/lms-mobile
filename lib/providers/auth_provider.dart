@@ -107,18 +107,60 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signup(String name, String email, String password) async {
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
     _error = null;
     _isLoading = true;
     notifyListeners();
 
     try {
-      _user = await _authService.signup(name, email, password);
+      _user = await _authService.register(
+        name: name,
+        email: email,
+        password: password,
+      );
       _isLoading = false;
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      _error = _parseDioError(e, fallback: 'Signup failed. Please try again.');
+      _error = _parseDioError(
+        e,
+        fallback: 'Registration failed. Please try again.',
+      );
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'Error: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> signup(String name, String email, String password) async {
+    return register(name: name, email: email, password: password);
+  }
+
+  Future<bool> deleteAccount() async {
+    _error = null;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccount();
+      _user = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _error = _parseDioError(
+        e,
+        fallback: 'Failed to delete account. Please try again.',
+      );
       _isLoading = false;
       notifyListeners();
       return false;
@@ -147,8 +189,7 @@ class AuthProvider extends ChangeNotifier {
     var detailedErrors = '';
     if (responseData is Map && responseData['errors'] != null) {
       if (responseData['errors'] is Map) {
-        final joined = (responseData['errors'] as Map)
-            .values
+        final joined = (responseData['errors'] as Map).values
             .map((v) => v is List ? v.join(', ') : v)
             .join(' | ');
         detailedErrors = ': $joined';
@@ -182,7 +223,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> changePassword(
-      String currentPassword, String newPassword) async {
+    String currentPassword,
+    String newPassword,
+  ) async {
     try {
       await _authService.changePassword(currentPassword, newPassword);
       return true;

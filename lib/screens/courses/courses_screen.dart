@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -38,52 +35,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isIosStudentPortalOnly = !kIsWeb && Platform.isIOS;
-    if (isIosStudentPortalOnly) {
-      return Scaffold(
-        backgroundColor: AppColors.bgLight,
-        appBar: AppBar(
-          title: const Text('Courses'),
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 40,
-                  color: AppColors.primaryGreen,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'To enroll in new courses, please visit our website.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Your mobile app is restricted to enrolled student access only.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       appBar: AppBar(
@@ -126,8 +77,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                 onChanged: provider.setSearch,
                 decoration: InputDecoration(
                   hintText: 'Search courses...',
-                  prefixIcon:
-                      const Icon(Icons.search, size: 20),
+                  prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
@@ -140,7 +90,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   filled: true,
                   fillColor: AppColors.bgLight,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -153,8 +105,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
           // Sort row
           Container(
             color: Colors.white,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Consumer<CoursesProvider>(
               builder: (_, provider, __) => Row(
                 children: [
@@ -176,15 +127,21 @@ class _CoursesScreenState extends State<CoursesScreen> {
                       ),
                       items: const [
                         DropdownMenuItem(
-                            value: 'popular', child: Text('Popular')),
+                          value: 'popular',
+                          child: Text('Popular'),
+                        ),
                         DropdownMenuItem(
-                            value: 'newest', child: Text('Newest')),
+                          value: 'newest',
+                          child: Text('Newest'),
+                        ),
                         DropdownMenuItem(
-                            value: 'price-asc',
-                            child: Text('Price: Low → High')),
+                          value: 'price-asc',
+                          child: Text('Price: Low → High'),
+                        ),
                         DropdownMenuItem(
-                            value: 'price-desc',
-                            child: Text('Price: High → Low')),
+                          value: 'price-desc',
+                          child: Text('Price: High → Low'),
+                        ),
                       ],
                       onChanged: (v) {
                         if (v != null) provider.setSort(v);
@@ -222,14 +179,10 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   onRefresh: provider.loadCourses,
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width >= 600
-                              ? 3
-                              : (MediaQuery.of(context).size.width >= 360
-                                  ? 2
-                                  : 1),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width >= 600
+                          ? 3
+                          : (MediaQuery.of(context).size.width >= 360 ? 2 : 1),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       mainAxisExtent: 310,

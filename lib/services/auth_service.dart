@@ -23,21 +23,64 @@ class AuthService {
     final profileRes = await _api.dio.get(ApiConfig.profile);
     final profile = profileRes.data;
 
-    final user = User.fromJson(profile is Map<String, dynamic>
-        ? profile
-        : Map<String, dynamic>.from(profile as Map));
+    final user = User.fromJson(
+      profile is Map<String, dynamic>
+          ? profile
+          : Map<String, dynamic>.from(profile as Map),
+    );
 
     await _api.saveUser(jsonEncode(user.toJson()));
     return user;
   }
 
-  /// Register a new account, then auto-login.
-  Future<User> signup(String name, String email, String password) async {
-    await _api.dio.post(
+  /// Register a new account.
+  Future<User> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _api.dio.post(
       ApiConfig.register,
-      data: {'name': name, 'email': email, 'password': password},
+      data: {'name': name.trim(), 'email': email.trim(), 'password': password},
     );
-    return login(email, password);
+
+    final data = response.data;
+    final accessToken = data['accessToken'] as String;
+    await _api.saveToken(accessToken);
+
+    // Fetch full profile with enrollments
+    try {
+      final profileRes = await _api.dio.get(ApiConfig.profile);
+      final profile = profileRes.data;
+      final user = User.fromJson(
+        profile is Map<String, dynamic>
+            ? profile
+            : Map<String, dynamic>.from(profile as Map),
+      );
+      await _api.saveUser(jsonEncode(user.toJson()));
+      return user;
+    } catch (_) {
+      final userData = data['user'] is Map<String, dynamic>
+          ? data['user'] as Map<String, dynamic>
+          : Map<String, dynamic>.from(data['user'] as Map);
+      final user = User.fromJson(userData);
+      await _api.saveUser(jsonEncode(user.toJson()));
+      return user;
+    }
+  }
+
+  /// Register a new account, then auto-login (legacy alias).
+  Future<User> signup(String name, String email, String password) async {
+    return register(name: name, email: email, password: password);
+  }
+
+  /// Delete account permanently (Apple Guideline 5.1.1(v)).
+  Future<void> deleteAccount() async {
+    try {
+      await _api.dio.delete(ApiConfig.deleteAccount);
+    } finally {
+      await _api.clearAuth();
+    }
   }
 
   /// Logout — calls server then clears local storage.
@@ -75,23 +118,19 @@ class AuthService {
 
   /// Change password — logs out on success.
   Future<void> changePassword(
-      String currentPassword, String newPassword) async {
+    String currentPassword,
+    String newPassword,
+  ) async {
     await _api.dio.post(
       ApiConfig.changePassword,
-      data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      },
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
   }
 
   /// Request a password reset email.
   /// Sends the email to the backend; the backend sends a reset link.
   Future<void> forgotPassword(String email) async {
-    await _api.dio.post(
-      ApiConfig.forgotPassword,
-      data: {'email': email},
-    );
+    await _api.dio.post(ApiConfig.forgotPassword, data: {'email': email});
   }
 
   /// Reset password using the token received via email.

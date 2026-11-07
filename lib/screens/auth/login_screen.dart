@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:premier_lms/config/theme.dart';
@@ -41,7 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       if (auth.user != null && !auth.user!.isActive) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/under-review', (_) => false);
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/under-review', (_) => false);
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
       }
@@ -57,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isIOS = !kIsWeb && Platform.isIOS;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -134,15 +139,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Email Address',
                           hintText: 'you@example.com',
-                          prefixIcon:
-                              Icon(Icons.email_outlined, size: 20),
+                          prefixIcon: Icon(Icons.email_outlined, size: 20),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
                             return 'Email is required';
                           }
-                          if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                              .hasMatch(v)) {
+                          if (!RegExp(
+                            r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                          ).hasMatch(v)) {
                             return 'Enter a valid email';
                           }
                           return null;
@@ -160,8 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: 'Password',
                           hintText: '••••••••',
-                          prefixIcon:
-                              const Icon(Icons.lock_outlined, size: 20),
+                          prefixIcon: const Icon(Icons.lock_outlined, size: 20),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
@@ -170,7 +174,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               size: 20,
                             ),
                             onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword),
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                           ),
                         ),
                         validator: (v) {
@@ -204,7 +209,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       */
-
                       const SizedBox(height: 16),
 
                       // Sign In button
@@ -244,36 +248,119 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 24),
 
-                // Student portal provisioning notice
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.bgLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.borderLight),
-                  ),
-                  child: Row(
+                if (isIOS) ...[
+                  Row(
                     children: [
-                      const Icon(
-                        Icons.school_outlined,
-                        size: 22,
-                        color: AppColors.primaryGreen,
+                      const Expanded(
+                        child: Divider(
+                          color: AppColors.borderLight,
+                          thickness: 1,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
-                          'Student portal access is provisioned upon official admission approval by Premier Tax School.',
+                          'OR',
                           style: TextStyle(
-                            fontSize: 12.5,
-                            color: Colors.grey.shade600,
-                            height: 1.35,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade400,
                           ),
+                        ),
+                      ),
+                      const Expanded(
+                        child: Divider(
+                          color: AppColors.borderLight,
+                          thickness: 1,
                         ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderLight),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'New Student? Create an account to explore and enroll in courses.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/signup'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primaryGreen,
+                              side: const BorderSide(
+                                color: AppColors.primaryGreen,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Create Student Account',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  // Student portal provisioning notice
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderLight),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.school_outlined,
+                          size: 22,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Student portal access is provisioned upon official admission approval by Premier Tax School.',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: Colors.grey.shade600,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
