@@ -338,13 +338,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () async {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Restore request sent to App Store...'),
+                      content: Text('Checking App Store for previous purchases...'),
                       duration: Duration(seconds: 3),
                     ),
                   );
-                  await context.read<IapProvider>().restorePurchases();
-                  if (context.mounted) {
-                    await context.read<AuthProvider>().revalidateSession();
+                  final iap = context.read<IapProvider>();
+                  await iap.restorePurchases();
+                  if (!context.mounted) return;
+                  if (iap.successMessage != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(iap.successMessage!),
+                        backgroundColor: AppColors.primaryGreen,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                    iap.clearSuccessMessage();
+                  } else if (iap.errorMessage != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(iap.errorMessage!),
+                        backgroundColor: Colors.red.shade600,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                    iap.clearError();
                   }
                 },
               ),

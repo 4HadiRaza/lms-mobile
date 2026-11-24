@@ -61,6 +61,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       });
     }
 
+    // Show error snackbar if IAP purchase failed
+    if (iap.errorMessage != null) {
+      final err = iap.errorMessage!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(err),
+            backgroundColor: Colors.red.shade600,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        context.read<IapProvider>().clearError();
+      });
+    }
+
     return Scaffold(
       body: DefaultTabController(
         length: 2,
@@ -308,11 +324,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
     // iOS StoreKit In-App Purchase Footer
     final iap = context.watch<IapProvider>();
+    final productDetails = iap.getProductForCourse(course);
+    final bool isProductAvailable = productDetails != null;
     final localizedPrice = iap.getPriceForCourse(course);
     final fallbackPrice = course.price != null
         ? 'Rs ${course.price!.toStringAsFixed(0)}'
         : 'Rs 19,900';
     final displayPrice = localizedPrice ?? fallbackPrice;
+
+    final String buttonText;
+    if (iap.isLoadingProducts) {
+      buttonText = 'Loading App Store details...';
+    } else if (isProductAvailable) {
+      buttonText = 'Enroll Now • $displayPrice';
+    } else {
+      buttonText = 'Currently unavailable on iOS';
+    }
+
+    final bool isBusy = iap.isPurchasing || iap.isRestoring;
 
     return Container(
       decoration: BoxDecoration(
@@ -340,7 +369,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: iap.isPurchasing
+                      onPressed: (isBusy || !isProductAvailable)
                           ? null
                           : () async {
                               final started = await context
@@ -390,7 +419,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               ],
                             )
                           : Text(
-                              'Enroll Now • $displayPrice',
+                              buttonText,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -401,7 +430,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   ),
                   const SizedBox(height: 6),
                   TextButton(
-                    onPressed: iap.isPurchasing
+                    onPressed: isBusy
                         ? null
                         : () async {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -425,15 +454,38 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       foregroundColor: AppColors.textSecondary,
                     ),
-                    child: const Text(
-                      'Restore Previous Purchases',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
+                    child: iap.isRestoring
+                        ? const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Restoring Purchases...',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Text(
+                            'Restore Previous Purchases',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                   ),
                 ],
               ),

@@ -21,6 +21,8 @@ class IapProvider extends ChangeNotifier {
   bool _isAvailable = false;
   bool _isLoadingProducts = false;
   bool _isPurchasing = false;
+  bool _isRestoring = false;
+  int _restoredCount = 0;
   String? _purchasingCourseId;
   String? _errorMessage;
   String? _successMessage;
@@ -31,6 +33,7 @@ class IapProvider extends ChangeNotifier {
   bool get isAvailable => _isAvailable;
   bool get isLoadingProducts => _isLoadingProducts;
   bool get isPurchasing => _isPurchasing;
+  bool get isRestoring => _isRestoring;
   String? get purchasingCourseId => _purchasingCourseId;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
@@ -201,16 +204,25 @@ class IapProvider extends ChangeNotifier {
   Future<void> restorePurchases() async {
     if (!_isAvailable) return;
 
+    _isRestoring = true;
     _isPurchasing = true;
     _errorMessage = null;
+    _successMessage = null;
+    _restoredCount = 0;
     notifyListeners();
 
     try {
       await _iap.restorePurchases();
+      // Allow StoreKit asynchronous stream up to 6 seconds to deliver and process restored transactions
+      await Future.delayed(const Duration(seconds: 6));
+      if (_restoredCount == 0 && _errorMessage == null) {
+        _errorMessage = 'No previous purchases found to restore.';
+      }
     } catch (e) {
       debugPrint('IapProvider: restorePurchases exception: $e');
       _errorMessage = 'Failed to restore purchases: $e';
     } finally {
+      _isRestoring = false;
       _isPurchasing = false;
       notifyListeners();
     }
@@ -231,7 +243,16 @@ class IapProvider extends ChangeNotifier {
           break;
 
         case PurchaseStatus.purchased:
+          _isPurchasing = true;
+          notifyListeners();
+          await _verifyAndDeliverProduct(purchaseDetails);
+          _isPurchasing = false;
+          _purchasingCourseId = null;
+          notifyListeners();
+          break;
+
         case PurchaseStatus.restored:
+          _restoredCount++;
           _isPurchasing = true;
           notifyListeners();
           await _verifyAndDeliverProduct(purchaseDetails);
@@ -267,53 +288,74 @@ class IapProvider extends ChangeNotifier {
   Future<void> _verifyAndDeliverProduct(PurchaseDetails purchaseDetails) async {
     try {
       final courseId = _findCourseIdForProductId(purchaseDetails.productID);
-      if (courseId == null) {
-        debugPrint(
-          'IapProvider: Warning — could not match productId ${purchaseDetails.productID} to local course',
-        );
-        if (purchaseDetails.pendingCompletePurchase) {
-          await _iap.completePurchase(purchaseDetails);
-        }
-        return;
+      // Cold-start fix (Issue #10): If courseId is null (e.g. cold launch before courses load),
+      // DO NOT abort and DO NOT complete the purchase!
+      // Send the request without courseId; the backend resolves the course via appleProductId.
+      final Map<String, dynamic> requestPayload = {
+        'productId': purchaseDetails.productID,
+        'receiptData':
+            purchaseDetails.verificationData.serverVerificationData,
+        'transactionId': purchaseDetails.purchaseID,
+      };
+      if (courseId != null && courseId.isNotEmpty) {
+        requestPayload['courseId'] = courseId;
       }
 
       final response = await ApiService.instance.dio.post(
         ApiConfig.verifyAppleIap,
-        data: {
-          'productId': purchaseDetails.productID,
-          'courseId': courseId,
-          'receiptData':
-              purchaseDetails.verificationData.serverVerificationData,
-          'transactionId': purchaseDetails.purchaseID,
-        },
+        data: requestPayload,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         debugPrint(
-          'IapProvider: Successfully verified IAP transaction for course $courseId',
+          'IapProvider: Successfully verified IAP transaction for product ${purchaseDetails.productID}',
         );
         _successMessage = 'Course unlocked! You are now enrolled.';
-        // Refresh session so user.isCourseEnrolled immediately reflects active status
+        _errorMessage = null;
+
+        // 1. Refresh user session so user.isCourseEnrolled immediately reflects active status
         await _authProvider?.revalidateSession();
+
+        // 2. ONLY NOW complete the transaction to remove it from Apple StoreKit queue
+        if (purchaseDetails.pendingCompletePurchase) {
+          await _iap.completePurchase(purchaseDetails);
+        }
         notifyListeners();
       } else {
-        _errorMessage = 'Receipt validation failed on server.';
+        _errorMessage = 'Receipt validation failed on server (${response.statusCode}).';
         notifyListeners();
       }
     } on DioException catch (e) {
       debugPrint('IapProvider: Backend verification DioException: $e');
-      _errorMessage =
-          'Could not verify purchase with LMS server. Please contact support.';
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode != null &&
+          (statusCode == 400 || statusCode == 404 || statusCode == 422)) {
+        final serverMsg = (e.response?.data is Map)
+            ? e.response?.data['message']?.toString()
+            : null;
+        _errorMessage =
+            serverMsg ?? 'Invalid purchase receipt. Please contact support.';
+
+        // If permanently revoked or refunded, complete purchase to remove from queue
+        if (serverMsg != null &&
+            (serverMsg.contains('revoked') || serverMsg.contains('refunded'))) {
+          if (purchaseDetails.pendingCompletePurchase) {
+            await _iap.completePurchase(purchaseDetails);
+          }
+        }
+      } else {
+        // Network error, timeout, 5xx, 401: DO NOT call completePurchase!
+        // The transaction remains in Apple StoreKit queue and will be re-delivered on app restart or restore.
+        _errorMessage =
+            'Purchase received by Apple, but we couldn\'t reach our server to unlock the course. '
+            'Your payment is safe—please check your connection and tap "Restore Previous Purchases" or restart the app.';
+      }
       notifyListeners();
     } catch (e) {
       debugPrint('IapProvider: Unexpected verification error: $e');
       _errorMessage = 'Error processing purchase: $e';
       notifyListeners();
-    } finally {
-      // StoreKit requirement: Always complete purchase to remove from queue
-      if (purchaseDetails.pendingCompletePurchase) {
-        await _iap.completePurchase(purchaseDetails);
-      }
     }
   }
 
